@@ -7,13 +7,16 @@ import { TenantUser } from './tenant-user.entity';
 import { TenantUserService } from './tenant-user.service';
 import { TenantUserController } from './tenant-user.controller';
 import { TenantController } from './tenant.controller';
+import { Team } from './team.entity';
+import { TeamService } from './team.service';
+import { TeamController } from './team.controller';
 import { TenantAccessGuard } from './guards/tenant-access.guard';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Tenant, TenantUser])],
-  controllers: [TenantUserController, TenantController],
-  providers: [TenantService, TenantUserService, TenantAccessGuard],
-  exports: [TenantService, TenantUserService, TenantAccessGuard],
+  imports: [TypeOrmModule.forFeature([Tenant, TenantUser, Team])],
+  controllers: [TenantUserController, TenantController, TeamController],
+  providers: [TenantService, TenantUserService, TeamService, TenantAccessGuard],
+  exports: [TenantService, TenantUserService, TeamService, TenantAccessGuard],
 })
 export class TenantModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

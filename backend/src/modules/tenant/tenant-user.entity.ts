@@ -14,6 +14,12 @@ export class TenantUser {
   @Column({ name: 'role_id', nullable: true })
   roleId: string;
 
+  @Column({ name: 'team_id', nullable: true })
+  teamId: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  role: string;
+
   @Column({ default: 'active' })
   status: string;
 

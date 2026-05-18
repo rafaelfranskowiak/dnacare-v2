@@ -18,12 +18,12 @@
 
 **Purpose**: New module scaffolding and configuration
 
-- [ ] T001 Create backend module directories for all new modules per plan.md structure (backend/src/modules/plans/, opportunities/, sales/, clients/, subscriptions/, asaas/, webhooks/, reports/)
-- [ ] T002 [P] Create Asaas configuration module in backend/src/config/asaas.config.ts — registerAs('asaas', {...}) with API key, sandbox flag, base URLs
-- [ ] T003 [P] Create frontend page directories per plan.md (frontend/src/app/(dashboard)/oportunidades/, clientes/, vendas/, relatorios/, equipe/, config/; frontend/src/app/admin/planos/)
-- [ ] T004 Create database interceptor directory and TenantQueryInterceptor in backend/src/database/interceptors/tenant-query.interceptor.ts — auto-filter GET queries by tenantId from request
-- [ ] T005 [P] Create Roles decorator and RolesGuard in backend/src/common/decorators/roles.decorator.ts and backend/src/common/guards/roles.guard.ts — role-based authorization
-- [ ] T006 [P] Verify package.json files in backend/package.json and frontend/package.json — no new dependencies needed (native fetch for HTTP, existing class-validator/class-transformer)
+- [x] T001 Create backend module directories for all new modules per plan.md structure (backend/src/modules/plans/, opportunities/, sales/, clients/, subscriptions/, asaas/, webhooks/, reports/)
+- [x] T002 [P] Create Asaas configuration module in backend/src/config/asaas.config.ts — registerAs('asaas', {...}) with API key, sandbox flag, base URLs
+- [x] T003 [P] Create frontend page directories per plan.md (frontend/src/app/(dashboard)/oportunidades/, clientes/, vendas/, relatorios/, equipe/, config/; frontend/src/app/admin/planos/)
+- [x] T004 Create database interceptor directory and TenantQueryInterceptor in backend/src/database/interceptors/tenant-query.interceptor.ts — auto-filter GET queries by tenantId from request
+- [x] T005 [P] Create Roles decorator and RolesGuard in backend/src/common/decorators/roles.decorator.ts and backend/src/common/guards/roles.guard.ts — role-based authorization
+- [x] T006 [P] Verify package.json files in backend/package.json and frontend/package.json — no new dependencies needed (native fetch for HTTP, existing class-validator/class-transformer)
 
 ---
 
@@ -33,14 +33,14 @@
 
 **⚠️ CRITICAL**: No user story work begins until this phase is complete
 
-- [ ] T007 Create PlanPricingEngine pure function in backend/src/modules/plans/pricing-engine.ts — input: PricingInput, output: PricingOutput with calculationMemory (per research.md Section 10)
-- [ ] T008 [P] Create AsaasService in backend/src/modules/asaas/asaas.module.ts + asaas.service.ts — typed methods: createCustomer, findCustomerByCpfCnpj, createPayment, createCheckout, createSubscription, cancelSubscription, getPayments using native fetch (per research.md Section 7)
-- [ ] T009 [P] Create DocumentRegistry entity in backend/src/modules/opportunities/document-registry.entity.ts — tenant_id, document_normalized, entity_type, entity_id with UNIQUE(tenant_id, document_normalized)
-- [ ] T010 [P] Create WebhookEvent entity in backend/src/modules/webhooks/webhook-event.entity.ts — asaas_event_id UNIQUE, event_type, payload JSONB, status (received/processing/processed/failed)
-- [ ] T011 [P] Create WebhookEventService in backend/src/modules/webhooks/webhook-events.service.ts — insertIfNotExists() with idempotency check via unique constraint
-- [ ] T012 Extend Tenant entity in backend/src/modules/tenant/tenant.entity.ts — add columns: asaas_api_key (VARCHAR, encrypted), asaas_sandbox (BOOLEAN), asaas_webhook_url, asaas_webhook_id, asaas_webhook_auth_token
-- [ ] T013 Generate and run initial migration for foundational entities: DocumentRegistry, WebhookEvent, Tenant Asaas columns — `npm run migration:generate -- database/migrations/AddFoundationalEntities` then `npm run migration:run`
-- [ ] T014 [P] Create frontend Asaas API helper in frontend/src/lib/asaas-api.ts (if any frontend-side Asaas calls needed — likely none, all through backend)
+- [x] T007 Create PlanPricingEngine pure function in backend/src/modules/plans/pricing-engine.ts — input: PricingInput, output: PricingOutput with calculationMemory (per research.md Section 10)
+- [x] T008 [P] Create AsaasService in backend/src/modules/asaas/asaas.module.ts + asaas.service.ts — typed methods: createCustomer, findCustomerByCpfCnpj, createPayment, createCheckout, createSubscription, cancelSubscription, getPayments using native fetch (per research.md Section 7)
+- [x] T009 [P] Create DocumentRegistry entity in backend/src/modules/opportunities/document-registry.entity.ts — tenant_id, document_normalized, entity_type, entity_id with UNIQUE(tenant_id, document_normalized)
+- [x] T010 [P] Create WebhookEvent entity in backend/src/modules/webhooks/webhook-event.entity.ts — asaas_event_id UNIQUE, event_type, payload JSONB, status (received/processing/processed/failed)
+- [x] T011 [P] Create WebhookEventService in backend/src/modules/webhooks/webhook-events.service.ts — insertIfNotExists() with idempotency check via unique constraint
+- [x] T012 Extend Tenant entity in backend/src/modules/tenant/tenant.entity.ts — add columns: asaas_api_key (VARCHAR, encrypted), asaas_sandbox (BOOLEAN), asaas_webhook_url, asaas_webhook_id, asaas_webhook_auth_token
+- [x] T013 Generate and run initial migration for foundational entities: DocumentRegistry, WebhookEvent, Tenant Asaas columns — `npm run migration:generate -- database/migrations/AddFoundationalEntities` then `npm run migration:run`
+- [x] T014 [P] Create frontend Asaas API helper in frontend/src/lib/asaas-api.ts (if any frontend-side Asaas calls needed — likely none, all through backend)
 
 **Checkpoint**: Foundation ready — cross-cutting infrastructure operational. User story implementation begins.
 
@@ -62,17 +62,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Create Team entity in backend/src/modules/tenant/team.entity.ts — name, tenant_id FK, manager_id FK→users
-- [ ] T019 [US1] Extend TenantUser entity with role field in backend/src/modules/tenant/tenant-user.entity.ts — role ENUM (admin/gerente/representante)
-- [ ] T020 [US1] Create TeamService in backend/src/modules/tenant/team.service.ts — CRUD teams, assign manager/representatives
-- [ ] T021 [US1] Extend TenantController in backend/src/modules/tenant/tenant.controller.ts — add PATCH /api/tenants/:id for Asaas config (Super Admin), GET /api/tenants/:id/config
-- [ ] T022 [US1] Extend TenantUserController in backend/src/modules/tenant/tenant-user.controller.ts — add role management, list users by role
-- [ ] T023 [US1] Create TeamController in backend/src/modules/tenant/team.controller.ts — CRUD /api/teams, assign users
-- [ ] T024 [US1] Update TenantModule in backend/src/modules/tenant/tenant.module.ts — register Team entity, export TeamService
-- [ ] T025 [US1] Generate and run migration for Team entity + TenantUser role column — `npm run migration:generate -- database/migrations/AddTeamsAndRoles` then `npm run migration:run`
-- [ ] T026 [US1] Apply @Roles guards to tenant controllers in backend/src/modules/tenant/tenant.controller.ts and backend/src/modules/tenant/team.controller.ts — @Roles('super_admin') on POST /api/tenants, @Roles('admin') on team management
-- [ ] T027 [US1] Create frontend team management page in frontend/src/app/(dashboard)/equipe/page.tsx — list teams, create/edit modal, assign members
-- [ ] T028 [US1] Create frontend unit config page in frontend/src/app/(dashboard)/config/page.tsx — Asaas API key config (Admin only, masked display)
+- [x] T018 [US1] Create Team entity in backend/src/modules/tenant/team.entity.ts — name, tenant_id FK, manager_id FK→users
+- [x] T019 [US1] Extend TenantUser entity with role field in backend/src/modules/tenant/tenant-user.entity.ts — role ENUM (admin/gerente/representante)
+- [x] T020 [US1] Create TeamService in backend/src/modules/tenant/team.service.ts — CRUD teams, assign manager/representatives
+- [x] T021 [US1] Extend TenantController in backend/src/modules/tenant/tenant.controller.ts — add PATCH /api/tenants/:id for Asaas config (Super Admin), GET /api/tenants/:id/config
+- [x] T022 [US1] Extend TenantUserController in backend/src/modules/tenant/tenant-user.controller.ts — add role management, list users by role
+- [x] T023 [US1] Create TeamController in backend/src/modules/tenant/team.controller.ts — CRUD /api/teams, assign users
+- [x] T024 [US1] Update TenantModule in backend/src/modules/tenant/tenant.module.ts — register Team entity, export TeamService
+- [x] T025 [US1] Generate and run migration for Team entity + TenantUser role column — `npm run migration:generate -- database/migrations/AddTeamsAndRoles` then `npm run migration:run`
+- [x] T026 [US1] Apply @Roles guards to tenant controllers in backend/src/modules/tenant/tenant.controller.ts and backend/src/modules/tenant/team.controller.ts — @Roles('super_admin') on POST /api/tenants, @Roles('admin') on team management
+- [x] T027 [US1] Create frontend team management page in frontend/src/app/(dashboard)/equipe/page.tsx — list teams, create/edit modal, assign members
+- [x] T028 [US1] Create frontend unit config page in frontend/src/app/(dashboard)/config/page.tsx — Asaas API key config (Admin only, masked display)
 
 **Checkpoint**: Tenants + users + teams fully operational with role-based access. Unit config page ready.
 

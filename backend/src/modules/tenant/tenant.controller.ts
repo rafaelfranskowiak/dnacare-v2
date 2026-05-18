@@ -1,9 +1,11 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, UseGuards, ConflictException, NotFoundException,
+  Body, Param, UseGuards, ConflictException, NotFoundException, Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantAccessGuard } from './guards/tenant-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { TenantService } from './tenant.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -48,5 +50,21 @@ export class TenantController {
   async remove(@Param('id') id: string) {
     await this.service.remove(id);
     return null;
+  }
+
+  @Patch(':id/asaas-config')
+  @UseGuards(JwtAuthGuard, TenantAccessGuard, RolesGuard)
+  @Roles('super_admin')
+  async updateAsaasConfig(
+    @Param('id') id: string,
+    @Body() body: { asaasApiKey?: string; asaasSandbox?: boolean; asaasWebhookUrl?: string },
+  ) {
+    const tenant = await this.service.updateAsaasConfig(id, body);
+    if (!tenant) throw new NotFoundException('Tenant not found');
+    return {
+      id: tenant.id,
+      asaasSandbox: tenant.asaasSandbox,
+      asaasWebhookConfigured: !!tenant.asaasWebhookId,
+    };
   }
 }
