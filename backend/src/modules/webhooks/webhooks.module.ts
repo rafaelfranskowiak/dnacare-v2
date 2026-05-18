@@ -9,6 +9,8 @@ import { SaleModule } from '../sales/sale.module';
 import { OpportunityModule } from '../opportunities/opportunity.module';
 import { ClientModule } from '../clients/client.module';
 import { SubscriptionModule } from '../subscriptions/subscription.module';
+import { TenantModule } from '../tenant/tenant.module';
+import { AsaasModule } from '../asaas/asaas.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { SubscriptionModule } from '../subscriptions/subscription.module';
     OpportunityModule,
     ClientModule,
     SubscriptionModule,
+    TenantModule,
+    AsaasModule,
   ],
   controllers: [WebhookController],
   providers: [WebhookEventService, WebhookHandlerService],

@@ -1,13 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface Tenant {
-  id: string;
-  slug: string;
-  name: string;
-}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,33 +9,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
 
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [selectedTenant, setSelectedTenant] = useState('');
-  const [loadingTenants, setLoadingTenants] = useState(true);
-
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4003/api';
-
-  useEffect(() => {
-    async function loadTenants() {
-      try {
-        const res = await fetch(`${apiUrl}/tenants/public`);
-        if (res.ok) {
-          const body = await res.json();
-          const list: Tenant[] = body.data ?? [];
-          setTenants(list);
-          if (list.length > 0) setSelectedTenant(list[0].slug);
-        }
-      } catch {
-        setError('Erro ao carregar tenentes');
-      } finally {
-        setLoadingTenants(false);
-      }
-    }
-    loadTenants();
-  }, [apiUrl]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -51,15 +21,13 @@ export default function LoginPage() {
     try {
       const res = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-tenant-id': selectedTenant,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       if (!res.ok) {
-        setError('Email ou senha inválidos');
+        const body = await res.json().catch(() => ({}));
+        setError(body.message || 'Email ou senha inválidos');
         return;
       }
 
@@ -86,71 +54,27 @@ export default function LoginPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-ink">App</h1>
+            <h1 className="text-2xl font-bold text-ink">DNA Care</h1>
             <p className="mt-1 text-sm text-ink-tertiary">Acesse sua conta</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="tenant" className="mb-1.5 block text-sm font-medium text-ink-secondary">
-                Tenente
-              </label>
-              <select
-                id="tenant"
-                value={selectedTenant}
-                onChange={(e) => setSelectedTenant(e.target.value)}
-                required
-                disabled={loadingTenants || tenants.length === 0}
-                className="block w-full cursor-pointer rounded-lg border border-edge bg-surface-input px-4 py-2.5 text-sm text-ink transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loadingTenants ? (
-                  <option value="">Carregando...</option>
-                ) : tenants.length === 0 ? (
-                  <option value="">Nenhum tenente disponível</option>
-                ) : (
-                  tenants.map((t) => (
-                    <option key={t.id} value={t.slug}>{t.name}</option>
-                  ))
-                )}
-              </select>
+              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-secondary">Email</label>
+              <input id="email" type="email" placeholder="seu@email.com" value={email}
+                onChange={(e) => setEmail(e.target.value)} required autoFocus
+                className="block w-full rounded-lg border border-edge bg-surface-input px-4 py-2.5 text-sm text-ink placeholder:text-ink-muted transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20" />
             </div>
 
             <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-secondary">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoFocus
-                className="block w-full rounded-lg border border-edge bg-surface-input px-4 py-2.5 text-sm text-ink placeholder:text-ink-muted transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink-secondary">
-                Senha
-              </label>
+              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink-secondary">Senha</label>
               <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="block w-full rounded-lg border border-edge bg-surface-input px-4 py-2.5 pr-11 text-sm text-ink placeholder:text-ink-muted transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                <input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
+                  onChange={(e) => setPassword(e.target.value)} required
+                  className="block w-full rounded-lg border border-edge bg-surface-input px-4 py-2.5 pr-11 text-sm text-ink placeholder:text-ink-muted transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-ink-muted transition-colors hover:text-brand focus:outline-none"
-                  aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}
-                >
+                  aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}>
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
                   ) : (
@@ -166,11 +90,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading || loadingTenants}
-              className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-brand to-brand-light px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-brand-dark hover:to-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <button type="submit" disabled={loading}
+              className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-brand to-brand-light px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-brand-dark hover:to-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60">
               {loading ? (
                 <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -182,10 +103,9 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-ink-muted">
-          &copy; {new Date().getFullYear()} App. Todos os direitos reservados.
+          &copy; {new Date().getFullYear()} DNA Care. Todos os direitos reservados.
         </p>
       </div>
     </div>
-
   );
 }

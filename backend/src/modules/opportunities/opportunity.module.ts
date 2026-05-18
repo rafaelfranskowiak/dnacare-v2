@@ -9,10 +9,11 @@ import { DocumentRegistryService } from './document-registry.service';
 import { ViaCepService } from './viacep.service';
 import { SaleModule } from '../sales/sale.module';
 import { PlanModule } from '../plans/plan.module';
+import { TenantModule } from '../tenant/tenant.module';
 import { PlanVersion } from '../plans/plan-version.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Opportunity, OpportunityDependent, DocumentRegistry, PlanVersion]), SaleModule, PlanModule],
+  imports: [TypeOrmModule.forFeature([Opportunity, OpportunityDependent, DocumentRegistry, PlanVersion]), SaleModule, PlanModule, TenantModule],
   controllers: [OpportunityController],
   providers: [OpportunityService, DocumentRegistryService, ViaCepService],
   exports: [OpportunityService, DocumentRegistryService],

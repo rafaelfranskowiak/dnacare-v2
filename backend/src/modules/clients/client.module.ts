@@ -5,9 +5,10 @@ import { ClientService } from './client.service';
 import { ClientController } from './client.controller';
 import { SubscriptionModule } from '../subscriptions/subscription.module';
 import { AsaasModule } from '../asaas/asaas.module';
+import { TenantModule } from '../tenant/tenant.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Client]), SubscriptionModule, AsaasModule],
+  imports: [TypeOrmModule.forFeature([Client]), SubscriptionModule, AsaasModule, TenantModule],
   controllers: [ClientController],
   providers: [ClientService],
   exports: [ClientService],

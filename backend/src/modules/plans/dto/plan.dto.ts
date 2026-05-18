@@ -49,8 +49,9 @@ export class PublishPlanDto {
   @Min(0)
   baseValue: number;
 
+  @IsOptional()
   @IsString()
-  billingCycle: string;
+  billingCycle?: string;
 
   @IsIn(['none', 'fixed', 'progressive', 'regressive', 'tiered'])
   dependentRule: string;
@@ -63,9 +64,10 @@ export class PublishPlanDto {
   @IsNumber()
   maxDependents?: number;
 
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  minDependents: number;
+  minDependents?: number;
 
   @IsOptional()
   @IsNumber()

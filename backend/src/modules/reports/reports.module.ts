@@ -5,9 +5,10 @@ import { Sale } from '../sales/sale.entity';
 import { Client } from '../clients/client.entity';
 import { ReportsService } from './reports.service';
 import { ReportsController } from './reports.controller';
+import { TenantModule } from '../tenant/tenant.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Opportunity, Sale, Client])],
+  imports: [TypeOrmModule.forFeature([Opportunity, Sale, Client]), TenantModule],
   controllers: [ReportsController],
   providers: [ReportsService],
 })

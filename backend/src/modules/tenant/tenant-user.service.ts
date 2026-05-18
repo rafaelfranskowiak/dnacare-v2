@@ -11,9 +11,7 @@ export class TenantUserService {
   ) {}
 
   findByUserAndTenant(userId: string, tenantId: string): Promise<TenantUser | null> {
-    return this.repo.findOne({
-      where: { userId, tenantId, status: 'active' },
-    });
+    return this.repo.findOne({ where: { userId, tenantId, status: 'active' } });
   }
 
   findByTenant(tenantId: string): Promise<TenantUser[]> {
@@ -23,6 +21,13 @@ export class TenantUserService {
   create(data: Partial<TenantUser>): Promise<TenantUser> {
     const entity = this.repo.create(data);
     return this.repo.save(entity);
+  }
+
+  async updateRole(id: string, role: string, teamId?: string): Promise<TenantUser | null> {
+    const data: any = { role };
+    if (teamId !== undefined) data.teamId = teamId || null;
+    await this.repo.update(id, data);
+    return this.repo.findOne({ where: { id } });
   }
 
   async updateStatus(id: string, status: string): Promise<TenantUser | null> {

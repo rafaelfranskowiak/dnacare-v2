@@ -1,13 +1,14 @@
 import {
   Controller, Get, Post, Patch, Delete,
-  Body, Param, Query, UseGuards,
+  Body, Param, Query, UseGuards, Request,
   ConflictException, NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TenantAccessGuard } from './guards/tenant-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { TenantUserService } from './tenant-user.service';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
-import { UpdateTenantUserStatusDto } from './dto/update-tenant-user.dto';
 
 @Controller('tenant-users')
 @UseGuards(JwtAuthGuard, TenantAccessGuard)
@@ -15,38 +16,44 @@ export class TenantUserController {
   constructor(private readonly service: TenantUserService) {}
 
   @Get()
-  async list(@Query('tenant_id') tenantId?: string) {
-    if (tenantId) {
-      return { data: await this.service.findByTenant(tenantId) };
-    }
-    return { data: [] };
+  async list(@Request() req: any, @Query('tenant_id') tenantId?: string) {
+    const tid = tenantId || req.tenantId;
+    return { data: await this.service.findByTenant(tid) };
   }
 
   @Post()
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   async create(@Body() dto: CreateTenantUserDto) {
     const existing = await this.service.findByUserAndTenant(dto.user_id, dto.tenant_id);
-    if (existing) {
-      throw new ConflictException('User is already linked to this tenant');
-    }
-    const entity = await this.service.create({
+    if (existing) throw new ConflictException('Usuário já vinculado a esta unidade');
+    return this.service.create({
       tenantId: dto.tenant_id,
       userId: dto.user_id,
       status: dto.status || 'active',
     });
-    return entity;
   }
 
   @Patch(':id')
-  async updateStatus(
+  @Roles('admin')
+  @UseGuards(RolesGuard)
+  async update(
     @Param('id') id: string,
-    @Body() dto: UpdateTenantUserStatusDto,
+    @Body() body: { role?: string; teamId?: string; status?: string },
   ) {
-    const entity = await this.service.updateStatus(id, dto.status);
-    if (!entity) throw new NotFoundException('TenantUser link not found');
+    if (body.status) {
+      const entity = await this.service.updateStatus(id, body.status);
+      if (!entity) throw new NotFoundException('Vínculo não encontrado');
+      return entity;
+    }
+    const entity = await this.service.updateRole(id, body.role || '', body.teamId);
+    if (!entity) throw new NotFoundException('Vínculo não encontrado');
     return entity;
   }
 
   @Delete(':id')
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   async remove(@Param('id') id: string) {
     await this.service.remove(id);
     return null;

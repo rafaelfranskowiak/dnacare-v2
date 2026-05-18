@@ -12,22 +12,21 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  async login(email: string, password: string, tenantId: string) {
+  async login(email: string, password: string) {
     const user = await this.users.findByEmail(email);
-    if (!user) throw new UnauthorizedException();
-
-    if (user.tenantId !== tenantId) throw new UnauthorizedException();
+    if (!user) throw new UnauthorizedException('Email ou senha inválidos');
 
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) throw new UnauthorizedException();
+    if (!valid) throw new UnauthorizedException('Email ou senha inválidos');
 
+    const tenantId = user.tenantId;
     const tenantUser = await this.tenantUsers.findByUserAndTenant(user.id, tenantId);
     const role = tenantUser?.role || null;
 
-    const payload = { sub: user.id, email: user.email, tenantId: user.tenantId, is_platform_admin: user.is_platform_admin, role };
+    const payload = { sub: user.id, email: user.email, tenantId, is_platform_admin: user.is_platform_admin, role };
     const accessToken = this.jwt.sign(payload);
 
-    return { accessToken, tenantId: user.tenantId, user: { id: user.id, email: user.email, name: user.name, is_platform_admin: user.is_platform_admin, role } };
+    return { accessToken, tenantId, user: { id: user.id, email: user.email, name: user.name, is_platform_admin: user.is_platform_admin, role } };
   }
 
   async adminLogin(email: string, password: string) {

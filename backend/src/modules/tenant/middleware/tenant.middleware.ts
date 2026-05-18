@@ -16,12 +16,28 @@ export class TenantMiddleware implements NestMiddleware {
       return;
     }
 
-    const header = req.headers['x-tenant-id'] as string | undefined;
-    if (!header) throw new UnauthorizedException('x-tenant-id header required');
+    // Try JWT token first (Bearer) — extract tenantId from payload
+    const authHeader = req.headers['authorization'] as string | undefined;
+    let jwtTenantId: string | undefined;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.slice(7);
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        jwtTenantId = payload.tenantId;
+      } catch {
+        // Ignore parse errors — fall through to header check
+      }
+    }
 
-    let tenant = await this.tenantService.findBySlug(header);
+    // Try x-tenant-id header
+    const header = req.headers['x-tenant-id'] as string | undefined;
+    const lookupValue = header || jwtTenantId;
+
+    if (!lookupValue) throw new UnauthorizedException('x-tenant-id header required');
+
+    let tenant = await this.tenantService.findBySlug(lookupValue);
     if (!tenant) {
-      tenant = await this.tenantService.findById(header);
+      tenant = await this.tenantService.findById(lookupValue);
     }
     if (!tenant) throw new UnauthorizedException('Tenant not found');
 

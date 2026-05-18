@@ -25,6 +25,14 @@ export class TenantController {
     return { data: await this.service.findAll() };
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, TenantAccessGuard)
+  async get(@Param('id') id: string) {
+    const tenant = await this.service.findById(id);
+    if (!tenant) throw new NotFoundException('Tenant not found');
+    return tenant;
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard, TenantAccessGuard)
   async create(@Body() dto: CreateTenantDto) {

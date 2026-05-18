@@ -95,7 +95,7 @@ export class PlanService {
     versionEntity.version = nextVersion;
     versionEntity.name = `${plan.name} v${nextVersion}`;
     versionEntity.baseValue = config.baseValue;
-    versionEntity.billingCycle = config.billingCycle;
+    versionEntity.billingCycle = config.billingCycle || 'MONTHLY';
     versionEntity.dependentRule = config.dependentRule;
     versionEntity.includedDependents = config.includedDependents ?? 0;
     versionEntity.maxDependents = config.maxDependents ?? null;

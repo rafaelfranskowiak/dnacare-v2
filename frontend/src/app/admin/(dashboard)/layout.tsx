@@ -8,6 +8,7 @@ import { IconDashboard, IconUsers, IconTenants } from '@/components/icons';
 
 const links = [
   { label: 'Dashboard', href: '/admin', icon: <IconDashboard /> },
+  { label: 'Planos', href: '/admin/planos', icon: <IconTenants /> },
   { label: 'Usuários', href: '/admin/usuarios', icon: <IconUsers /> },
   { label: 'Tenants', href: '/admin/tenants', icon: <IconTenants /> },
 ];
