@@ -284,7 +284,7 @@ Ela permanece como registro histórico da origem comercial.
 
 - `ativo`;
 - `inativo`;
-- `vinculado_titular_inativo`;
+- `vinculado_a_titular_inativo`;
 - `removido`, se essa função existir futuramente.
 
 ### Assinatura
@@ -308,7 +308,7 @@ Ela permanece como registro histórico da origem comercial.
 - Processar webhooks com idempotência;
 - Isolar dados por tenant;
 - Armazenar IDs externos do Asaas em oportunidade, venda, assinatura e cliente, conforme o momento do fluxo;
-- Consultar histórico financeiro em tempo real no Asaas quando necessário;
+- Consultar em tempo real no Asaas apenas o histórico detalhado de faturas/cobranças na página interna do titular; os demais indicadores devem ser calculados a partir de dados locais e snapshots;
 - Evitar excesso de menus e interfaces fragmentadas.
 
 ---
@@ -500,16 +500,16 @@ inadimplente -> inativo
 ```txt
 ativo
 inativo
-vinculado_titular_inativo
+vinculado_a_titular_inativo
 removido
 ```
 
 ### Transições permitidas
 
 ```txt
-ativo -> vinculado_titular_inativo
+ativo -> vinculado_a_titular_inativo
 ativo -> removido
-vinculado_titular_inativo -> ativo
+vinculado_a_titular_inativo -> ativo
 removido -> ativo
 ```
 
@@ -584,13 +584,13 @@ Regras:
 ### Usuário cria oportunidade
 
 ```txt
-oopportunity: aberta
+opportunity: aberta
 ```
 
 ### Usuário gera checkout/fatura
 
 ```txt
-oopportunity: checkout_gerado
+opportunity: checkout_gerado
 sale: pending_payment
 asaas_customer_id armazenado na oportunidade/venda
 ```
@@ -608,7 +608,7 @@ subscription: ativa
 ### Usuário cancela oportunidade antes do pagamento
 
 ```txt
-oopportunity: cancelada
+opportunity: cancelada
 sale: cancelled_before_payment, se existir
 asaas_customer: tentar excluir/cancelar, se existir ID
 ```
@@ -626,7 +626,7 @@ asaas_subscription: inativada/cancelada
 ```txt
 client_holder: inativo
 subscription: inativa
-dependents: vinculado_titular_inativo ou inativo
+dependents: vinculado_a_titular_inativo ou inativo
 ```
 
 ---
@@ -664,6 +664,13 @@ Para cadastrar uma oportunidade, o usuário deve informar apenas:
 - Nome;
 - CPF ou CNPJ.
 
+Antes de concluir o cadastro, o sistema deve:
+
+- Normalizar o CPF/CNPJ informado;
+- Verificar se o documento já existe em qualquer registro da unidade;
+- Bloquear a criação caso encontre coincidência;
+- Exibir ao usuário o registro existente e seu tipo, para reaproveitamento do cadastro.
+
 Ao criar a oportunidade, o sistema deve registrar automaticamente:
 
 - Unidade;
@@ -690,19 +697,19 @@ Esse vínculo será utilizado futuramente para:
 
 ---
 
-## 4. Regra de unicidade de CPF/CNPJ
+## 4. Regra global de unicidade de CPF/CNPJ
 
-O CPF ou CNPJ deve ser único dentro da unidade.
+O CPF ou CNPJ deve ser único dentro da unidade, considerando todas as entidades que armazenam documento.
 
-Regras:
+Regra prática:
 
-- Não permitir duas oportunidades com o mesmo CPF/CNPJ na mesma unidade;
-- Não permitir dois clientes/titulares com o mesmo CPF/CNPJ na mesma unidade;
-- Ao tentar cadastrar documento duplicado, bloquear o cadastro;
-- Orientar o usuário a acessar o registro existente;
-- Ao converter oportunidade em cliente, reaproveitar o mesmo documento.
+- Antes de criar uma oportunidade, o sistema deve normalizar o documento e consultar todos os registros da unidade que possam possuir CPF/CNPJ;
+- Se o documento já existir em qualquer oportunidade, cliente, dependente ou conta de autenticação futura, o cadastro deve ser bloqueado;
+- O usuário deve ser orientado a abrir o registro existente, em vez de criar um duplicado;
+- A conversão de oportunidade em cliente deve reutilizar o mesmo documento normalizado já validado na criação;
+- A regra vale também para edição de oportunidade e para criação de dependentes e futuras contas de autenticação.
 
-A regra de unicidade global entre unidades poderá ser avaliada separadamente, mas inicialmente a unicidade obrigatória é por unidade.
+Para tornar essa regra robusta e prática, o sistema deve manter um controle canônico de documentos por unidade, com `document_normalized` e bloqueio transacional/índice único equivalente, evitando corrida entre cadastros simultâneos.
 
 ---
 
@@ -778,7 +785,7 @@ Regras:
 - Ao converter a oportunidade, os dependentes serão reaproveitados e vinculados ao titular gerado;
 - Não permitir o mesmo CPF de dependente mais de uma vez na mesma oportunidade;
 - Não permitir cadastrar como dependente o mesmo CPF/CNPJ da oportunidade/titular;
-- A regra de duplicidade de dependente entre titulares diferentes poderá ser definida posteriormente.
+- A duplicidade de dependente entre titulares diferentes não é permitida na unidade.
 
 ---
 
@@ -1000,9 +1007,10 @@ Ao converter uma oportunidade:
 2. A pessoa principal da oportunidade vira cliente titular local;
 3. Os dependentes cadastrados na oportunidade viram clientes dependentes locais;
 4. Os dados pessoais preenchidos na oportunidade são reaproveitados;
-5. O vínculo com a oportunidade de origem é preservado;
-6. O vínculo com o usuário/vendedor responsável é preservado;
-7. Os IDs do Asaas devem ser vinculados ao titular/assinatura quando gerados.
+5. O mesmo `document_normalized` já validado na oportunidade deve ser reutilizado no cliente local;
+6. O vínculo com a oportunidade de origem é preservado;
+7. O vínculo com o usuário/vendedor responsável é preservado;
+8. Os IDs do Asaas devem ser vinculados ao titular/assinatura quando gerados.
 
 ---
 
@@ -1230,9 +1238,9 @@ Na rota interna do titular, serão exibidos dados financeiros como:
 - Status das faturas;
 - Links de pagamento, quando disponíveis.
 
-Esses dados não precisam ficar totalmente armazenados no sistema.
+A listagem detalhada de faturas/cobranças pode ser consultada em tempo real na API do Asaas, mas os totais e indicadores devem vir de dados locais persistidos a partir de webhooks e snapshots.
 
-O histórico financeiro deve ser consultado em tempo real na API do Asaas usando:
+O histórico detalhado deve ser consultado em tempo real na API do Asaas usando:
 
 - ID do cliente no Asaas;
 - ID da subscription no Asaas.
@@ -1522,7 +1530,7 @@ Somente o Super Admin poderá gerir planos.
 O Super Admin poderá:
 
 - Criar plano;
-- Editar plano, respeitando regra de versionamento;
+- Editar rascunho do plano; planos publicados exigem nova versão;
 - Publicar plano;
 - Inativar plano;
 - Duplicar plano para criar nova versão;
@@ -1687,19 +1695,18 @@ Exemplo:
 
 ## 9. Regra de alteração de plano publicado
 
-Quando um plano já publicado tiver clientes, vendas ou assinaturas vinculadas, suas configurações comerciais não devem ser editadas diretamente.
+Planos publicados não devem ser editados diretamente.
 
-Nesse caso, o sistema deve obrigar o Super Admin a criar uma nova versão.
+Qualquer alteração comercial em um plano publicado deve ser feita por nova versão, preservando o histórico dos contratos já firmados.
 
 Fluxo recomendado:
 
-1. Super Admin acessa plano publicado;
+1. Super Admin acessa o plano publicado;
 2. Solicita alteração de preço/regra;
-3. Sistema verifica se há vendas ou assinaturas vinculadas à versão atual;
-4. Se não houver vínculo, permite edição direta;
-5. Se houver vínculo, sistema cria nova versão do plano;
-6. Versão antiga pode ser inativada para novas vendas;
-7. Nova versão passa a ser publicada para novas vendas.
+3. Sistema bloqueia a edição direta do registro atual;
+4. Sistema orienta a criação de uma nova versão do plano;
+5. Nova versão é publicada para novas vendas;
+6. A versão anterior é inativada para novas vendas, sem afetar clientes, vendas e assinaturas já existentes.
 
 ---
 
@@ -1960,7 +1967,7 @@ O sistema poderá gerar indicadores como:
 - Pessoa jurídica pode ter dependentes;
 - Planos não devem ser excluídos;
 - Planos devem ser inativados quando não forem mais vendidos;
-- Alterações em planos já vendidos devem gerar nova versão;
+- Planos publicados não devem ser editados diretamente; mudanças comerciais exigem nova versão;
 - Clientes antigos preservam a versão contratada;
 - Vendas preservam a fotografia do plano no momento do fechamento;
 - Assinaturas preservam a versão contratada;
@@ -2188,7 +2195,7 @@ O sistema deve armazenar:
 
 ## 11. Histórico financeiro na rota do titular
 
-Na rota interna do titular, o sistema deverá exibir dados financeiros consultados em tempo real no Asaas.
+Na rota interna do titular, o sistema deverá exibir o histórico detalhado de faturas/cobranças com consulta em tempo real ao Asaas apenas para essa listagem. Os totais e indicadores financeiros devem vir de dados locais persistidos a partir de webhooks e snapshots.
 
 Informações previstas:
 
@@ -2200,9 +2207,9 @@ Informações previstas:
 - Vencimentos;
 - Links de pagamento, quando disponíveis.
 
-O histórico completo das faturas não precisa ser armazenado localmente.
+O histórico completo das faturas pode permanecer no Asaas; localmente, o sistema deve manter apenas os resumos necessários para indicadores, auditoria e reconciliação.
 
-O sistema deve consultar em tempo real usando:
+O histórico detalhado deve ser consultado em tempo real usando:
 
 - ID do cliente no Asaas;
 - ID da subscription no Asaas.
@@ -2905,6 +2912,7 @@ Campos sugeridos:
 - `name`;
 - `document`;
 - `document_type`;
+- `document_normalized`;
 - `phone`;
 - `email`;
 - `birth_date`;
@@ -2935,7 +2943,7 @@ Campos sugeridos:
 
 Índice/regra importante:
 
-- Documento único por unidade para oportunidades/clientes, conforme modelagem final.
+- Documento único por unidade para oportunidades/clientes, validado pelo `Document Registry` ou estrutura equivalente de controle canônico.
 
 ---
 
@@ -2949,13 +2957,15 @@ Campos sugeridos:
 - `opportunity_id`;
 - `name`;
 - `cpf`;
+- `cpf_normalized`;
 - `created_at`;
 - `updated_at`.
 
 Regras:
 
 - CPF único dentro da mesma oportunidade;
-- CPF do dependente não pode ser igual ao documento da oportunidade/titular.
+- CPF do dependente não pode ser igual ao documento da oportunidade/titular;
+- CPF do dependente não pode existir em outro registro documental da unidade.
 
 ---
 
@@ -2974,6 +2984,7 @@ Campos sugeridos:
 - `name`;
 - `document`;
 - `document_type`;
+- `document_normalized`;
 - `phone`;
 - `email`;
 - `birth_date`;
@@ -3015,6 +3026,7 @@ Campos sugeridos:
 - `email`;
 - `phone`;
 - `document`;
+- `document_normalized`;
 - `password_hash`;
 - `auth_provider`;
 - `is_active`;
@@ -3057,7 +3069,7 @@ Decisão adotada:
 - Planos não serão criados pelas unidades no MVP;
 - Unidades venderão os planos disponibilizados pela plataforma;
 - Planos não devem ser excluídos;
-- Alterações relevantes em planos publicados devem gerar nova versão.
+- Planos publicados não devem ser editados diretamente; qualquer mudança comercial exige nova versão e inativação da anterior para novas vendas.
 
 Campos sugeridos:
 
@@ -3209,9 +3221,9 @@ Tipos possíveis:
 
 ### 3.16 Payments / Charges
 
-Representa cobranças locais relevantes, quando necessário.
+Representa o espelho local resumido das cobranças e pagamentos relevantes, alimentado por webhooks e rotinas de sincronização.
 
-Nem todo histórico de fatura precisa ser armazenado localmente, pois o histórico financeiro será consultado em tempo real no Asaas.
+Nem todo histórico detalhado de fatura precisa ser armazenado localmente, mas o sistema deve manter os resumos necessários para dashboard, auditoria e reconciliação. O detalhamento completo permanece consultável no Asaas na rota interna do titular.
 
 Campos sugeridos:
 
@@ -3365,25 +3377,54 @@ Campos sugeridos:
 
 ---
 
+### 3.22 Document Registry
+
+Registra o controle canônico de CPF/CNPJ por unidade.
+
+Campos sugeridos:
+
+- `id`;
+- `unit_id`;
+- `document_type`;
+- `document_raw`;
+- `document_normalized`;
+- `owner_entity_type`;
+- `owner_entity_id`;
+- `origin_opportunity_id`;
+- `status`;
+- `locked_at`;
+- `released_at`;
+- `created_at`;
+- `updated_at`.
+
+Regras:
+
+- Deve existir uma única linha por `unit_id` + `document_normalized`;
+- O registro deve bloquear duplicidade entre oportunidades, clientes, dependentes e contas de autenticação futura;
+- O registro deve ser atualizado na conversão da oportunidade, mantendo a origem comercial;
+- O bloqueio deve ser transacional para evitar corrida entre cadastros simultâneos.
+
+---
+
 ## 4. Regras de unicidade
 
 ### 4.1 Oportunidade
 
-- CPF/CNPJ único dentro da unidade;
-- Não permitir duplicidade entre oportunidades ativas;
-- Considerar clientes já convertidos na mesma unicidade;
-- Documento deve ser normalizado sem máscara;
+- CPF/CNPJ único dentro da unidade, considerando todas as entidades que armazenam documento;
+- Não permitir nova oportunidade se o documento já existir em qualquer oportunidade, cliente, dependente ou conta de autenticação futura da unidade;
+- Documento deve ser normalizado sem máscara e persistido em forma canônica;
 - Ao cancelar oportunidade com `asaas_customer_id`, tentar excluir/cancelar cliente no Asaas quando permitido.
 
 ### 4.2 Cliente titular
 
-- Não permitir dois titulares com o mesmo CPF/CNPJ dentro da mesma unidade.
+- Não permitir dois titulares com o mesmo CPF/CNPJ dentro da mesma unidade;
+- Se o documento já estiver associado a outro registro histórico da unidade, a criação do novo cliente deve ser bloqueada.
 
 ### 4.3 Dependente
 
 - Não permitir mesmo CPF duplicado dentro da mesma oportunidade;
 - Não permitir CPF do dependente igual ao CPF/CNPJ do titular;
-- Definir posteriormente se o mesmo dependente pode existir em mais de um titular.
+- Não permitir CPF do dependente caso já exista em outro registro documental da unidade;
 
 ---
 
@@ -4056,7 +4097,8 @@ Valor efetivamente recebido no mês.
 Fonte preferencial:
 
 - Pagamentos confirmados via webhook do Asaas;
-- Ou consulta agregada na API do Asaas, se necessário.
+- Registros locais de pagamentos/cobranças persistidos a partir dos webhooks;
+- Snapshots financeiros da unidade, quando aplicável.
 
 Cálculo:
 
@@ -4070,13 +4112,13 @@ Valor financeiro associado a clientes inadimplentes ou cobranças vencidas/em ab
 
 Cálculo sugerido:
 
-- Somar faturas vencidas;
-- Somar faturas em aberto de clientes inadimplentes;
+- Somar faturas vencidas persistidas localmente;
+- Somar faturas em aberto de clientes inadimplentes persistidas localmente;
 - Considerar apenas clientes titulares com assinatura ativa, inadimplente ou em risco.
 
 Observação:
 
-A receita em risco pode ser consultada em tempo real no Asaas ou armazenada de forma resumida a partir de webhooks.
+A receita em risco deve ser calculada a partir das cobranças persistidas localmente, alimentadas por webhooks e snapshots; a consulta em tempo real ao Asaas fica restrita ao histórico detalhado de faturas/cobranças e a casos de reconciliação.
 
 ### 4.7 Inadimplência
 
@@ -4085,7 +4127,7 @@ Quantidade e percentual de clientes titulares inadimplentes.
 Cálculo em quantidade:
 
 - Contar titulares com status `inadimplente`;
-- Ou titulares com faturas vencidas no Asaas.
+- Ou titulares com faturas vencidas persistidas localmente.
 
 Cálculo percentual:
 
@@ -4236,7 +4278,7 @@ Fonte:
 
 - Webhooks do Asaas;
 - Payments locais, se armazenados;
-- Consulta em tempo real no Asaas, quando necessário.
+- Snapshots financeiros da unidade, quando aplicável.
 
 ### 6.3 Receita pendente
 
@@ -4468,11 +4510,11 @@ Usados para:
 
 ### Estratégia recomendada
 
-Para indicadores da dashboard, recomenda-se usar o banco interno como fonte principal sempre que os dados forem persistidos por webhooks.
+Para indicadores da dashboard, o banco interno e os snapshots devem ser a fonte principal.
 
-Consultas em tempo real ao Asaas devem ser usadas com cuidado, principalmente para detalhes financeiros específicos, pois podem afetar performance.
+Consultas em tempo real ao Asaas ficam restritas ao histórico detalhado de faturas/cobranças na página interna do titular e a casos de reconciliação operacional.
 
-Para dashboard, o ideal é manter dados financeiros resumidos localmente a partir dos webhooks, e consultar o Asaas em tempo real apenas quando necessário.
+Para dashboard e relatórios, o ideal é manter dados financeiros resumidos localmente a partir dos webhooks e snapshots, e consultar o Asaas em tempo real apenas quando realmente necessário fora desses indicadores.
 
 ---
 
@@ -4802,7 +4844,7 @@ Abaixo está a matriz inicial recomendada.
 | Reprocessar webhook | Não | Não | Não | Sim |
 | Configurar chave Asaas | Não | Não | Não | Sim |
 | Cadastrar webhook Asaas por unidade | Não | Não | Não | Sim |
-| Criar/editar planos | Não | Não | Não | Sim |
+| Criar planos e editar rascunhos de planos | Não | Não | Não | Sim |
 
 ### 4.1 Regras adicionais
 
@@ -4876,7 +4918,7 @@ vinculado_a_titular_inativo
 
 ### 6.3 Evento histórico recomendado
 
-Toda inclusão, remoção ou reativação de dependente deve gerar registro em `customer_events` ou tabela equivalente.
+Toda inclusão, remoção ou reativação de dependente deve gerar registro em `customer_events`.
 
 ---
 
@@ -4991,12 +5033,6 @@ Sugestão de tabela:
 customer_events
 ```
 
-Ou nome equivalente:
-
-```txt
-activity_logs
-```
-
 ### 9.1 Objetivo
 
 Registrar a linha do tempo operacional e comercial do cliente, oportunidade, venda e assinatura.
@@ -5094,7 +5130,7 @@ A implementação deve considerar cuidadosamente a transição oportunidade → 
 
 - CPF do dependente não pode repetir dentro da mesma oportunidade;
 - CPF do dependente não pode ser igual ao documento do titular;
-- Decisão futura: permitir ou não o mesmo dependente em titulares diferentes.
+- O mesmo dependente não pode existir em titulares diferentes na mesma unidade.
 
 ---
 
@@ -5450,7 +5486,6 @@ Pendências que ainda podem ser detalhadas depois:
 - Se haverá plano anual no MVP;
 - Se planos poderão ser disponibilizados para todas as unidades ou apenas para unidades específicas;
 - Se pessoa jurídica exigirá responsável legal já no MVP;
-- Se o mesmo dependente poderá existir em titulares diferentes;
 - Se gerente terá permissões financeiras ampliadas futuramente;
 - Se notificações automáticas entrarão em uma segunda fase;
 - Se cancelamento no fim do ciclo será suportado no futuro;

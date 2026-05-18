@@ -4,7 +4,24 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$CurrentRoot = (Get-Location).Path
+$Root = $null
+
+foreach ($candidate in @($CurrentRoot, $ScriptRoot)) {
+  if (
+    (Test-Path (Join-Path $candidate 'backend')) -and
+    (Test-Path (Join-Path $candidate 'frontend'))
+  ) {
+    $Root = $candidate
+    break
+  }
+}
+
+if (-not $Root) {
+  throw "Nao encontrei as pastas backend/frontend. Execute o script dentro da raiz do projeto dnacare-v2."
+}
+
 $BackendPath = Join-Path $Root 'backend'
 $FrontendPath = Join-Path $Root 'frontend'
 
