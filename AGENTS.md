@@ -78,10 +78,10 @@ Pre-commit order: `npm run lint && npm run typecheck`
 - Typography: system font stack (no custom font)
 
 <!-- SPECKIT START -->
-Active feature plan: `specs/001-admin-tenant-separation/plan.md`
-Spec: `specs/001-admin-tenant-separation/spec.md`
-Data model: `specs/001-admin-tenant-separation/data-model.md`
-Contracts: `specs/001-admin-tenant-separation/contracts/`
+Active feature plan: `specs/002-clube-assinatura/plan.md`
+Spec: `specs/002-clube-assinatura/spec.md`
+Data model: `specs/002-clube-assinatura/data-model.md`
+Contracts: `specs/002-clube-assinatura/contracts/`
 <!-- SPECKIT END -->
 
 <!-- gitnexus:start -->
