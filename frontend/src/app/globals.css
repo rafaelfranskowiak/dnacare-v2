@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --surface-canvas: 220 22% 96%;
+    --surface: 0 0% 100%;
+    --surface-elevated: 220 20% 98%;
+    --surface-input: 220 18% 94%;
+
+    --ink: 222 28% 12%;
+    --ink-secondary: 221 14% 34%;
+    --ink-tertiary: 220 10% 50%;
+    --ink-muted: 220 8% 67%;
+
+    --edge: 220 16% 88%;
+    --edge-soft: 220 18% 92%;
+    --edge-emphasis: 220 14% 80%;
+  }
+
+  .dark {
+    --surface-canvas: 222 26% 8%;
+    --surface: 222 24% 11%;
+    --surface-elevated: 222 22% 13%;
+    --surface-input: 222 20% 15%;
+
+    --ink: 220 20% 94%;
+    --ink-secondary: 220 12% 74%;
+    --ink-tertiary: 220 10% 58%;
+    --ink-muted: 220 8% 44%;
+
+    --edge: 222 18% 21%;
+    --edge-soft: 222 18% 18%;
+    --edge-emphasis: 222 16% 28%;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface-canvas text-ink antialiased transition-colors duration-300;
+  }
+}
