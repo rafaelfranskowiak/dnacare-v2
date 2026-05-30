@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from './client.entity';
+import { isValidDocument, normalizeDocument } from '../opportunities/document-normalizer';
 
 @Injectable()
 export class ClientService {
@@ -59,6 +60,54 @@ export class ClientService {
       status: 'ativo',
     });
     return this.clientRepo.save(client);
+  }
+
+  async createDependentFromHolder(
+    tenantId: string,
+    holderId: string,
+    depData: { name: string; document: string; phone?: string; email?: string; birthDate?: string },
+  ): Promise<Client> {
+    const holder = await this.findById(holderId, tenantId);
+    if (!holder) throw new NotFoundException('Titular não encontrado');
+    if (holder.type !== 'holder') throw new BadRequestException('Dependente só pode ser criado para um titular');
+
+    const documentNormalized = normalizeDocument(depData.document);
+    if (!isValidDocument(documentNormalized)) throw new BadRequestException('CPF inválido');
+    if (normalizeDocument(holder.document) === documentNormalized) {
+      throw new BadRequestException('CPF do dependente não pode ser igual ao do titular');
+    }
+
+    const existing = await this.clientRepo.findOne({ where: { tenantId, documentNormalized } });
+    if (existing) throw new BadRequestException('CPF já cadastrado nesta unidade');
+
+    const client = this.clientRepo.create({
+      tenantId,
+      opportunityId: holder.opportunityId,
+      sellerId: holder.sellerId,
+      holderId: holder.id,
+      type: 'dependent',
+      name: depData.name.trim(),
+      document: depData.document,
+      documentNormalized,
+      phone: depData.phone?.trim() || undefined,
+      email: depData.email?.trim() || undefined,
+      birthDate: depData.birthDate || undefined,
+      status: 'ativo',
+    });
+
+    return this.clientRepo.save(client);
+  }
+
+  async deleteDependentFromHolder(tenantId: string, holderId: string, dependentId: string): Promise<void> {
+    const holder = await this.findById(holderId, tenantId);
+    if (!holder) throw new NotFoundException('Titular não encontrado');
+    if (holder.type !== 'holder') throw new BadRequestException('Dependente só pode ser removido de um titular');
+
+    const dependent = await this.clientRepo.findOne({ where: { id: dependentId, tenantId, holderId } });
+    if (!dependent) throw new NotFoundException('Dependente não encontrado');
+    if (dependent.type !== 'dependent') throw new BadRequestException('Cliente não é dependente');
+
+    await this.clientRepo.remove(dependent);
   }
 
   async findAll(tenantId: string, filters: any): Promise<{ data: Client[]; total: number }> {
