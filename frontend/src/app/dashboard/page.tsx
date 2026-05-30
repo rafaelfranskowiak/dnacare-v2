@@ -21,8 +21,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-xl font-semibold text-ink mb-6">Dashboard</h1>
-
       {data ? (
         <div className="space-y-6">
           <div className="grid grid-cols-4 gap-4">

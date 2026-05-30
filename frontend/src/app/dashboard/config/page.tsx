@@ -27,8 +27,6 @@ export default function ConfigPage() {
 
   return (
     <div className="p-8 max-w-2xl">
-      <h1 className="text-xl font-semibold text-ink mb-6">Configurações da Unidade</h1>
-
       <div className="space-y-4">
         <div className="rounded-xl border border-edge bg-surface p-6 shadow-sm">
           <h2 className="text-base font-semibold text-ink mb-2">Dados da Unidade</h2>

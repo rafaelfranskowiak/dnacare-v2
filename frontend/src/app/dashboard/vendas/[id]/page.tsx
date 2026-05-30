@@ -30,12 +30,15 @@ export default function VendaDetailPage() {
   return (
     <div className="p-8 max-w-4xl">
       <Link href="/dashboard/vendas" className="text-sm text-brand hover:underline mb-4 inline-block">← Voltar</Link>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-ink">Venda {sale.id?.slice(0, 8)}</h1>
-          <p className="text-sm text-ink-tertiary">{sale.opportunityName || 'Cliente'} • {sale.planName}</p>
+      <div className="mb-6 rounded-xl border border-edge bg-surface p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-tertiary">Venda</p>
+            <h2 className="mt-1 text-xl font-semibold text-ink">Venda {sale.id?.slice(0, 8)}</h2>
+            <p className="mt-1 text-sm text-ink-tertiary">{sale.opportunityName || 'Cliente'} • {sale.planName}</p>
+          </div>
+          <span className={`inline-flex rounded-full border px-3 py-1 text-sm font-medium ${statusColor(sale.status)}`}>{sale.status?.replace(/_/g, ' ')}</span>
         </div>
-        <span className={`inline-flex rounded-full border px-3 py-1 text-sm font-medium ${statusColor(sale.status)}`}>{sale.status?.replace(/_/g, ' ')}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-6">

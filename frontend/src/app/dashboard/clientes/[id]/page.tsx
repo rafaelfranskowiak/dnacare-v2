@@ -55,20 +55,23 @@ export default function ClientDetailPage() {
   return (
     <div className="p-8 max-w-4xl">
       <Link href="/dashboard/clientes" className="text-sm text-brand hover:underline mb-4 inline-block">← Voltar</Link>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-ink">{client.name}</h1>
-          <p className="text-sm text-ink-tertiary">
-            {client.type === 'holder' ? 'Titular' : 'Dependente'}
-            {client.holderName && <> • Titular: <Link href={`/dashboard/clientes/${client.holderId}`} className="text-brand hover:underline">{client.holderName}</Link></>}
-            {' • CPF: '}{client.document}
-          </p>
+      <div className="mb-6 rounded-xl border border-edge bg-surface p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-tertiary">Cliente</p>
+            <h2 className="mt-1 text-xl font-semibold text-ink">{client.name}</h2>
+            <p className="mt-1 text-sm text-ink-tertiary">
+              {client.type === 'holder' ? 'Titular' : 'Dependente'}
+              {client.holderName && <> • Titular: <Link href={`/dashboard/clientes/${client.holderId}`} className="text-brand hover:underline">{client.holderName}</Link></>}
+              {' • CPF: '}{client.document}
+            </p>
+          </div>
+          <span className={`inline-flex rounded-full border px-3 py-1 text-sm font-medium ${
+            client.status === 'ativo' ? 'bg-success/10 text-success border-success/20' :
+            client.status === 'inativo' ? 'bg-surface-canvas text-ink-tertiary border-edge' :
+            'bg-danger/10 text-danger border-danger/20'
+          }`}>{client.status}</span>
         </div>
-        <span className={`inline-flex rounded-full border px-3 py-1 text-sm font-medium ${
-          client.status === 'ativo' ? 'bg-success/10 text-success border-success/20' :
-          client.status === 'inativo' ? 'bg-surface-canvas text-ink-tertiary border-edge' :
-          'bg-danger/10 text-danger border-danger/20'
-        }`}>{client.status}</span>
       </div>
 
       <div className="grid grid-cols-2 gap-6">

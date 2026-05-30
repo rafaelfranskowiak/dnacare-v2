@@ -124,8 +124,6 @@ export default function EquipePage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-xl font-semibold text-ink mb-6">Equipe</h1>
-
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-surface-canvas rounded-lg p-1 w-fit">
         {(['usuarios', 'times'] as Tab[]).map(t => (

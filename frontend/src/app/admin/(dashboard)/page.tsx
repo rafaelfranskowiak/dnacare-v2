@@ -23,8 +23,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-xl font-semibold text-ink mb-6">Dashboard Global</h1>
-
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="rounded-xl border border-edge bg-surface p-5 shadow-sm">
           <div className="text-2xl font-bold text-ink">{data.units?.total || '-'}</div>
