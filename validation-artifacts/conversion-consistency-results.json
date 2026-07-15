@@ -1,0 +1,149 @@
+{
+  "consistency": {
+    "confirmed_sales": 4,
+    "confirmed_with_converted_opportunity": 4,
+    "confirmed_with_subscription": 4,
+    "confirmed_with_one_holder": 4,
+    "dependent_count_matches": 4,
+    "recurring_value_matches": 3,
+    "admission_fee_in_recurring_value": 4
+  },
+  "totals": {
+    "converted_opportunities": 4,
+    "holders": 4,
+    "dependents": 2,
+    "subscriptions": 4
+  },
+  "paymentsTable": null,
+  "saleChecks": [
+    {
+      "base_value": "49.90",
+      "dependents_value": "0.00",
+      "discount": "0.00",
+      "admission_fee": "0.00",
+      "total_value": "49.90",
+      "dependent_count": 0,
+      "recurring_value": "49.90",
+      "expected_recurring": "49.90",
+      "recurring_delta": "0.00"
+    },
+    {
+      "base_value": "99.90",
+      "dependents_value": "0.00",
+      "discount": "0.00",
+      "admission_fee": "0.00",
+      "total_value": "99.90",
+      "dependent_count": 1,
+      "recurring_value": "99.90",
+      "expected_recurring": "99.90",
+      "recurring_delta": "0.00"
+    },
+    {
+      "base_value": "99.90",
+      "dependents_value": "0.00",
+      "discount": "0.00",
+      "admission_fee": "0.00",
+      "total_value": "99.90",
+      "dependent_count": 1,
+      "recurring_value": "99.90",
+      "expected_recurring": "99.90",
+      "recurring_delta": "0.00"
+    },
+    {
+      "base_value": "149.90",
+      "dependents_value": "0.00",
+      "discount": "0.00",
+      "admission_fee": "99.90",
+      "total_value": "249.80",
+      "dependent_count": 0,
+      "recurring_value": "249.80",
+      "expected_recurring": "149.90",
+      "recurring_delta": "99.90"
+    }
+  ],
+  "duplicates": [
+    {
+      "entity": "tenant_users",
+      "duplicate_groups": 0
+    },
+    {
+      "entity": "sales",
+      "duplicate_groups": 0
+    },
+    {
+      "entity": "clients",
+      "duplicate_groups": 0
+    },
+    {
+      "entity": "subscriptions",
+      "duplicate_groups": 0
+    },
+    {
+      "entity": "webhook_events",
+      "duplicate_groups": 0
+    }
+  ],
+  "pricingCases": [
+    {
+      "name": "admission-excluded-from-recurring",
+      "result": {
+        "baseValue": 100,
+        "dependentsValue": 50,
+        "admissionFee": 50,
+        "subtotal": 200,
+        "discount": 10,
+        "total": 190,
+        "calculationMemory": "[\"Valor base: R$ 100.00\",\"Dependentes contratados: 2\",\"Dependentes inclusos: 0\",\"Dependentes extras: 2\",\"Regra de cobrança: fixed\",\"2 x R$ 25.00 = R$ 50.00\",\"Valor dependentes: R$ 50.00\",\"Taxa de adesão: R$ 50.00\",\"Subtotal: R$ 200.00\",\"Desconto: R$ 10.00\",\"Valor final: R$ 190.00\"]"
+      },
+      "expected": {
+        "total": 190,
+        "recurring": 140
+      }
+    },
+    {
+      "name": "progressive-included-dependents",
+      "result": {
+        "baseValue": 100,
+        "dependentsValue": 60,
+        "admissionFee": 0,
+        "subtotal": 160,
+        "discount": 0,
+        "total": 160,
+        "calculationMemory": "[\"Valor base: R$ 100.00\",\"Dependentes contratados: 4\",\"Dependentes inclusos: 2\",\"Dependentes extras: 2\",\"Regra de cobrança: progressive\",\"  1º dependente extra: R$ 20.00\",\"  2º dependente extra: R$ 40.00\",\"Valor dependentes: R$ 60.00\",\"Subtotal: R$ 160.00\",\"Valor final: R$ 160.00\"]"
+      },
+      "expected": {
+        "total": 160
+      }
+    },
+    {
+      "name": "tiered",
+      "result": {
+        "baseValue": 100,
+        "dependentsValue": 140,
+        "admissionFee": 0,
+        "subtotal": 240,
+        "discount": 0,
+        "total": 240,
+        "calculationMemory": "[\"Valor base: R$ 100.00\",\"Dependentes contratados: 3\",\"Dependentes inclusos: 0\",\"Dependentes extras: 3\",\"Regra de cobrança: tiered\",\"  1º dependente extra (faixa): R$ 50.00\",\"  2º dependente extra (faixa): R$ 50.00\",\"  3º dependente extra (faixa): R$ 40.00\",\"Valor dependentes: R$ 140.00\",\"Subtotal: R$ 240.00\",\"Valor final: R$ 240.00\"]"
+      },
+      "expected": {
+        "total": 240
+      }
+    }
+  ],
+  "monthEndCases": [
+    {
+      "date": "2025-01-29",
+      "next": "2025-02-28"
+    },
+    {
+      "date": "2025-01-30",
+      "next": "2025-02-28"
+    },
+    {
+      "date": "2025-01-31",
+      "next": "2025-02-28"
+    }
+  ],
+  "nextDueDatePersisted": false
+}

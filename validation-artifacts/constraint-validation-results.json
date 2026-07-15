@@ -1,0 +1,36 @@
+{
+  "required": [
+    {
+      "key": "tenant_users (tenant_id, user_id)",
+      "present": false,
+      "status": "FALHOU"
+    },
+    {
+      "key": "sales (tenant_id, opportunity_id)",
+      "present": false,
+      "status": "FALHOU"
+    },
+    {
+      "key": "clients (tenant_id, opportunity_id)",
+      "present": false,
+      "status": "FALHOU"
+    },
+    {
+      "key": "subscriptions (tenant_id, sale_id)",
+      "present": false,
+      "status": "FALHOU"
+    },
+    {
+      "key": "payments (tenant_id, asaas_payment_id)",
+      "present": false,
+      "status": "FALHOU"
+    },
+    {
+      "key": "webhook_events (asaas_event_id)",
+      "present": true,
+      "status": "PASSOU"
+    }
+  ],
+  "observedIndexCount": 8,
+  "note": "absence of a required uniqueness constraint is a production blocker for concurrent idempotency"
+}

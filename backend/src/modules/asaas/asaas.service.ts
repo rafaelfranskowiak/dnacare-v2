@@ -39,6 +39,11 @@ interface AsaasSubscriptionInput {
   externalReference?: string;
 }
 
+interface AsaasSubscriptionUpdateInput {
+  status: 'ACTIVE' | 'INACTIVE';
+  nextDueDate?: string;
+}
+
 @Injectable()
 export class AsaasService {
   private readonly logger = new Logger(AsaasService.name);
@@ -184,6 +189,19 @@ export class AsaasService {
 
   async getSubscription(id: string, context: AsaasTenantContext): Promise<any> {
     return this.request('GET', `/subscriptions/${encodeURIComponent(id)}`, context);
+  }
+
+  async updateSubscription(
+    id: string,
+    input: AsaasSubscriptionUpdateInput,
+    context: AsaasTenantContext,
+  ): Promise<any> {
+    return this.request(
+      'PUT',
+      `/subscriptions/${encodeURIComponent(id)}`,
+      context,
+      input,
+    );
   }
 
   async cancelSubscription(id: string, context: AsaasTenantContext): Promise<any> {

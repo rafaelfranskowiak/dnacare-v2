@@ -6,16 +6,33 @@ import { normalizeDocument } from '../../src/modules/opportunities/document-norm
 
 // ── Config ──────────────────────────────────────────────────────────
 const TENANT_ID = '86c372af-b374-41e3-8399-4c3b152ee0f6';
-const ASAAS_API_KEY =
-  '$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDAwNjk0OTc6OiRhYWNoXzgzNTkzNGE5LWIzZTUtNDFjMi05YjY1LTBlMTlkNmM2OWViZQ==';
-const ASAAS_BASE = 'https://api-sandbox.asaas.com';
+const ASAAS_API_KEY = process.env.ASAAS_SANDBOX_API_KEY?.trim();
+const ASAAS_BASE = (
+  process.env.ASAAS_SANDBOX_BASE_URL?.trim() || 'https://api-sandbox.asaas.com'
+).replace(/\/+$/, '');
 
 // ── Asaas helper ────────────────────────────────────────────────────
 async function asaas(method: string, path: string, body?: Record<string, any>) {
+  if (!ASAAS_API_KEY) {
+    throw new Error(
+      'ASAAS_SANDBOX_API_KEY não definida. Configure uma chave exclusivamente do Sandbox antes de executar este seed.',
+    );
+  }
+
+  if (ASAAS_BASE === 'https://api.asaas.com') {
+    throw new Error(
+      'O seed de Sandbox não pode usar a URL de produção do Asaas.',
+    );
+  }
+
   const url = `${ASAAS_BASE}/v3${path}`;
   const res = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/json', access_token: ASAAS_API_KEY },
+    headers: {
+      'Content-Type': 'application/json',
+      'User-Agent': process.env.ASAAS_USER_AGENT || 'DNACare-Seed/0.1.0',
+      access_token: ASAAS_API_KEY,
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
@@ -31,15 +48,6 @@ async function populate() {
   const ds = await AppDataSource.initialize();
   const db = (sql: string, params?: any[]) => ds.query(sql, params);
   const hash = (pw: string) => bcrypt.hash(pw, 10);
-
-  // 0. TENANT
-  await db(
-    `INSERT INTO tenants (id, slug, name)
-     VALUES ($1, $2, $3)
-     ON CONFLICT (id) DO UPDATE SET slug = $2, name = $3`,
-    [TENANT_ID, 'dnacare-sandbox', 'DNA Care Sandbox'],
-  );
-  console.log('  DNA Care Sandbox tenant');
 
   console.log('╔══════════════════════════════════════════╗');
   console.log('║  POPULATE SANDBOX — Dados Completos     ║');
@@ -370,6 +378,7 @@ async function populate() {
       dependentValue: Number(pv.dependent_value || 0),
       tiersConfig: pv.tiers_config,
       admissionFee: Number(pv.admission_fee || 0),
+      billingCycle: pv.billing_cycle || 'MONTHLY',
     };
 
     const dueDate = new Date();
@@ -502,12 +511,29 @@ async function populate() {
     // Create Asaas subscription
     const startDate = new Date().toISOString().split('T')[0];
     const pv = planVersions.find((v: any) => v.id === s.planVersionId);
+    const [saleAmounts] = await db(
+      `SELECT base_value, dependents_value, discount
+       FROM sales
+       WHERE id = $1 AND tenant_id = $2`,
+      [s.id, TENANT_ID],
+    );
+    const recurringValue = Math.max(
+      0,
+      Number(saleAmounts.base_value || 0)
+        + Number(saleAmounts.dependents_value || 0)
+        - Number(saleAmounts.discount || 0),
+    );
+    const billingCycle = pv?.billing_cycle || 'MONTHLY';
+    const nextDueDateDate = new Date(`${startDate}T12:00:00.000Z`);
+    nextDueDateDate.setUTCMonth(nextDueDateDate.getUTCMonth() + 1);
+    const nextDueDate = nextDueDateDate.toISOString().split('T')[0];
+
     const asaasSub = await asaas('POST', '/subscriptions', {
       customer: s.asaasCustomerId,
       billingType: 'BOLETO',
-      value: s.totalValue,
-      nextDueDate: startDate,
-      cycle: 'MONTHLY',
+      value: recurringValue,
+      nextDueDate,
+      cycle: billingCycle,
       description: pv?.name || 'Assinatura',
       externalReference: s.id,
     });
@@ -517,13 +543,13 @@ async function populate() {
     await db(
       `INSERT INTO subscriptions (id, tenant_id, client_id, sale_id, plan_id, plan_version_id,
          plan_name, recurring_value, dependent_rule, dependent_count, status, start_date,
-         asaas_subscription_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+         billing_cycle, next_due_date, asaas_subscription_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
        ON CONFLICT (tenant_id, client_id) DO NOTHING`,
       [
         subId, TENANT_ID, holderId, s.id, s.planId, s.planVersionId,
-        pv?.name || 'Assinatura', s.totalValue, pv?.dependent_rule || 'none', s.dependentCount,
-        'ativa', startDate, asaasSub.id,
+        pv?.name || 'Assinatura', recurringValue, pv?.dependent_rule || 'none', s.dependentCount,
+        'ativa', startDate, billingCycle, nextDueDate, asaasSub.id,
       ],
     );
 

@@ -2,6 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 @Entity('clients')
 @Index(['tenantId', 'documentNormalized'], { unique: true })
+@Index('UQ_clients_holder_tenant_opportunity', ['tenantId', 'opportunityId'], {
+  unique: true,
+  where: `"type" = 'holder'`,
+})
 export class Client {
   @PrimaryGeneratedColumn('uuid')
   id: string;

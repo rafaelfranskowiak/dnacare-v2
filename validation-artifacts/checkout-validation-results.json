@@ -1,0 +1,44 @@
+[
+  {
+    "id": "CHK-01",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "tenant sem configuração Asaas falha antes de criar venda",
+    "salesBefore": 4,
+    "salesAfter": 4
+  },
+  {
+    "id": "CHK-02",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "CREDIT_CARD rejeitado explicitamente pelo DTO/endpoint",
+    "messageSafe": true
+  },
+  {
+    "id": "CHK-03",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "repetição permanece no preflight sem criar duplicata"
+  },
+  {
+    "id": "CHK-03-CONCURRENT",
+    "status": "PASSOU",
+    "http": [
+      400,
+      400
+    ],
+    "expected": [
+      400,
+      400
+    ],
+    "detail": "concorrência bloqueada antes do gateway por configuração ausente"
+  },
+  {
+    "id": "CHK-04",
+    "status": "BLOQUEADO",
+    "detail": "sem chave Sandbox Asaas configurada no tenant; E2E externo, payload customer/billingType/externalReference e reutilização de cliente não executáveis"
+  }
+]

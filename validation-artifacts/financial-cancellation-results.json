@@ -1,0 +1,44 @@
+[
+  {
+    "id": "FIN-01",
+    "status": "PASSOU",
+    "http": 201,
+    "expected": 201,
+    "db": {
+      "client_status": "cancelamento_pendente",
+      "subscription_status": "cancelamento_pendente",
+      "inactive_dependents": 1
+    },
+    "detail": "pending Asaas cancellation is visible locally"
+  },
+  {
+    "id": "FIN-02",
+    "status": "FALHOU",
+    "http": 201,
+    "expected": "must synchronize with Asaas before local activation",
+    "db": {
+      "client_status": "ativo",
+      "subscription_status": "ativa"
+    },
+    "detail": "reactivation updates local state without an Asaas call"
+  },
+  {
+    "id": "FIN-03",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "consolidated settlement remains explicitly blocked"
+  },
+  {
+    "id": "FIN-04",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "tenant Asaas config absent, financial gateway call blocked safely"
+  },
+  {
+    "id": "FIN-05",
+    "status": "BLOQUEADO",
+    "detail": "payments ledger table and suspension API are not present in the local schema/routes"
+  }
+]

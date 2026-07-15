@@ -66,6 +66,18 @@ export class SubscriptionService {
     return date.toISOString().slice(0, 10);
   }
 
+  private calculateReactivationDueDate(subscription: Subscription): string {
+    const today = new Date().toISOString().slice(0, 10);
+    const savedNextDueDate = subscription.nextDueDate?.slice(0, 10);
+
+    if (savedNextDueDate && savedNextDueDate > today) {
+      return savedNextDueDate;
+    }
+
+    const cycle = this.normalizeCycle(subscription.billingCycle);
+    return this.addCycle(today, cycle);
+  }
+
   async createFromSale(
     tenantId: string,
     clientId: string,
@@ -121,10 +133,54 @@ export class SubscriptionService {
       dependentCount: sale.dependentCount || 0,
       status: 'ativa',
       startDate,
+      billingCycle: cycle,
+      nextDueDate,
       asaasSubscriptionId: asaasSub.id,
     });
 
     return this.subRepo.save(sub);
+  }
+
+  async suspend(
+    subscription: Subscription,
+    context: AsaasTenantContext,
+  ): Promise<Subscription> {
+    if (!subscription.asaasSubscriptionId) {
+      throw new BadRequestException('Assinatura sem vínculo com o Asaas');
+    }
+
+    await this.asaasService.updateSubscription(
+      subscription.asaasSubscriptionId,
+      { status: 'INACTIVE' },
+      context,
+    );
+
+    subscription.status = 'inativa';
+    return this.subRepo.save(subscription);
+  }
+
+  async reactivate(
+    subscription: Subscription,
+    context: AsaasTenantContext,
+  ): Promise<Subscription> {
+    if (!subscription.asaasSubscriptionId) {
+      throw new BadRequestException('Assinatura sem vínculo com o Asaas');
+    }
+
+    const nextDueDate = this.calculateReactivationDueDate(subscription);
+
+    await this.asaasService.updateSubscription(
+      subscription.asaasSubscriptionId,
+      {
+        status: 'ACTIVE',
+        nextDueDate,
+      },
+      context,
+    );
+
+    subscription.status = 'ativa';
+    subscription.nextDueDate = nextDueDate;
+    return this.subRepo.save(subscription);
   }
 
   async findByClient(clientId: string, tenantId: string): Promise<Subscription | null> {

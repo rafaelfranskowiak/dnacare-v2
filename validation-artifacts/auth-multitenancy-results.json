@@ -1,0 +1,79 @@
+﻿[
+    {
+        "id":  "AUTH-01",
+        "status":  "PASSOU",
+        "http":  201,
+        "expected":  201,
+        "detail":  "super admin login"
+    },
+    {
+        "id":  "AUTH-02",
+        "status":  "PASSOU",
+        "http":  200,
+        "expected":  200,
+        "detail":  "super admin global administration"
+    },
+    {
+        "id":  "AUTH-03",
+        "status":  "PASSOU",
+        "http":  200,
+        "expected":  200,
+        "detail":  "admin own tenant resource"
+    },
+    {
+        "id":  "AUTH-04",
+        "status":  "PASSOU",
+        "http":  403,
+        "expected":  403,
+        "detail":  "representative administrative action"
+    },
+    {
+        "id":  "AUTH-05",
+        "status":  "PASSOU",
+        "http":  403,
+        "expected":  403,
+        "detail":  "tenant A token against tenant B"
+    },
+    {
+        "id":  "AUTH-08",
+        "status":  "PASSOU",
+        "http":  1,
+        "expected":  1,
+        "detail":  "GET /users secret fields absent=True"
+    },
+    {
+        "id":  "AUTH-09-tenantId",
+        "status":  "PASSOU",
+        "http":  400,
+        "expected":  400,
+        "detail":  "sensitive field rejected: tenantId"
+    },
+    {
+        "id":  "AUTH-09-status",
+        "status":  "PASSOU",
+        "http":  400,
+        "expected":  400,
+        "detail":  "sensitive field rejected: status"
+    },
+    {
+        "id":  "AUTH-09-asaasCustomerId",
+        "status":  "PASSOU",
+        "http":  400,
+        "expected":  400,
+        "detail":  "sensitive field rejected: asaasCustomerId"
+    },
+    {
+        "id":  "AUTH-09-holderId",
+        "status":  "PASSOU",
+        "http":  400,
+        "expected":  400,
+        "detail":  "sensitive field rejected: holderId"
+    },
+    {
+        "id":  "AUTH-09-relationships",
+        "status":  "PASSOU",
+        "http":  400,
+        "expected":  400,
+        "detail":  "sensitive field rejected: relationships"
+    }
+]

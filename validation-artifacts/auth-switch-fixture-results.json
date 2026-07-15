@@ -1,0 +1,23 @@
+[
+  {
+    "id": "AUTH-06",
+    "status": "PASSOU",
+    "http": 200,
+    "expected": 200,
+    "observedRole": "representante"
+  },
+  {
+    "id": "AUTH-07",
+    "status": "PASSOU",
+    "http": 403,
+    "expected": 403,
+    "detail": "admin A becomes representative in B"
+  },
+  {
+    "id": "AUTH-10",
+    "status": "PASSOU",
+    "http": 404,
+    "expected": 404,
+    "detail": "tenant A cannot alter B link"
+  }
+]

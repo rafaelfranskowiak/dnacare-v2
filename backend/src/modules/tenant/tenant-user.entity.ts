@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 
 @Entity('tenant_users')
+@Index('UQ_tenant_users_tenant_user', ['tenantId', 'userId'], { unique: true })
 export class TenantUser {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -1,0 +1,1447 @@
+{
+  "server": {
+    "database": "dnacarev2",
+    "user": "wizerdigital",
+    "port": 5432,
+    "version": "PostgreSQL 16.14 (Debian 16.14-1.pgdg12+1)"
+  },
+  "columns": [
+    {
+      "table_name": "clients",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "clients",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "opportunity_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "seller_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "type",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "holder_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "name",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "document",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "document_normalized",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "phone",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "email",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "birth_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "postal_code",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "address",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "address_number",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "address_complement",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "neighborhood",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "city",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "state",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": "'ativo'::character varying"
+    },
+    {
+      "table_name": "clients",
+      "column_name": "asaas_customer_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "clients",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "clients",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "document_registry",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "document_registry",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "document_registry",
+      "column_name": "document_normalized",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "document_registry",
+      "column_name": "entity_type",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "document_registry",
+      "column_name": "entity_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "document_registry",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "seller_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "name",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "document",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "document_normalized",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "phone",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "email",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "birth_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "postal_code",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "address",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "address_number",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "address_complement",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "neighborhood",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "city",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "state",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "plan_version_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "payment_method",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": "'aberta'::character varying"
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "cancel_reason",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "cancelled_by_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "cancelled_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "asaas_customer_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "opportunities",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "opportunity_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "seller_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "team_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "plan_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "plan_version_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "plan_snapshot",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "dependent_count",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "total_lives",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "1"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "base_value",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "dependents_value",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": "'0'::numeric"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "admission_fee",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "subtotal",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "discount",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": "'0'::numeric"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "total_value",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "calculation_memory",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "payment_method",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": "'pending_payment'::character varying"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "asaas_customer_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "asaas_payment_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "asaas_checkout_url",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "asaas_bankslip_url",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "sales",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "sales",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "client_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "sale_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "plan_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "plan_version_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "plan_name",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "recurring_value",
+      "data_type": "numeric",
+      "udt_name": "numeric",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "dependent_rule",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "dependent_count",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "0"
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": "'ativa'::character varying"
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "start_date",
+      "data_type": "date",
+      "udt_name": "date",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "cancel_reason",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "cancelled_by_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "cancelled_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "asaas_subscription_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "subscriptions",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "teams",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "teams",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "teams",
+      "column_name": "name",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "teams",
+      "column_name": "manager_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "teams",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "teams",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "user_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "role_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": "'active'::character varying"
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "team_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenant_users",
+      "column_name": "role",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "slug",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "name",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "asaas_api_key",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "asaas_sandbox",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "asaas_webhook_url",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "asaas_webhook_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "tenants",
+      "column_name": "asaas_webhook_auth_token",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "email",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "password",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "name",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "active",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "true"
+    },
+    {
+      "table_name": "users",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "is_platform_admin",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "is_nullable": "NO",
+      "column_default": "false"
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": "uuid_generate_v4()"
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "tenant_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "asaas_event_id",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "event_type",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "payload",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "is_nullable": "NO",
+      "column_default": null
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "status",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": "'received'::character varying"
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "processed_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "error_message",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": null
+    },
+    {
+      "table_name": "webhook_events",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "now()"
+    }
+  ],
+  "indexes": [
+    {
+      "tablename": "clients",
+      "indexname": "IDX_ed00c8b73123d3068a7fa75f46",
+      "indexdef": "CREATE UNIQUE INDEX \"IDX_ed00c8b73123d3068a7fa75f46\" ON public.clients USING btree (tenant_id, document_normalized)"
+    },
+    {
+      "tablename": "clients",
+      "indexname": "PK_f1ab7cf3a5714dbc6bb4e1c28a4",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_f1ab7cf3a5714dbc6bb4e1c28a4\" ON public.clients USING btree (id)"
+    },
+    {
+      "tablename": "document_registry",
+      "indexname": "IDX_ff1bdbd1855f1d84895cd17e8a",
+      "indexdef": "CREATE UNIQUE INDEX \"IDX_ff1bdbd1855f1d84895cd17e8a\" ON public.document_registry USING btree (tenant_id, document_normalized)"
+    },
+    {
+      "tablename": "document_registry",
+      "indexname": "PK_document_registry",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_document_registry\" ON public.document_registry USING btree (id)"
+    },
+    {
+      "tablename": "opportunities",
+      "indexname": "IDX_18e44a3407c571924b2df65f05",
+      "indexdef": "CREATE UNIQUE INDEX \"IDX_18e44a3407c571924b2df65f05\" ON public.opportunities USING btree (tenant_id, document_normalized)"
+    },
+    {
+      "tablename": "opportunities",
+      "indexname": "PK_4bd9cd12ddc0ff48a5a97ddebce",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_4bd9cd12ddc0ff48a5a97ddebce\" ON public.opportunities USING btree (id)"
+    },
+    {
+      "tablename": "sales",
+      "indexname": "PK_4f0bc990ae81dba46da680895ea",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_4f0bc990ae81dba46da680895ea\" ON public.sales USING btree (id)"
+    },
+    {
+      "tablename": "subscriptions",
+      "indexname": "IDX_94158192bcd77997010d7763b4",
+      "indexdef": "CREATE UNIQUE INDEX \"IDX_94158192bcd77997010d7763b4\" ON public.subscriptions USING btree (tenant_id, client_id)"
+    },
+    {
+      "tablename": "subscriptions",
+      "indexname": "PK_a87248d73155605cf782be9ee5e",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_a87248d73155605cf782be9ee5e\" ON public.subscriptions USING btree (id)"
+    },
+    {
+      "tablename": "teams",
+      "indexname": "PK_7e5523774a38b08a6236d322403",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_7e5523774a38b08a6236d322403\" ON public.teams USING btree (id)"
+    },
+    {
+      "tablename": "tenant_users",
+      "indexname": "PK_8ce1bc9e3a5887c234900365447",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_8ce1bc9e3a5887c234900365447\" ON public.tenant_users USING btree (id)"
+    },
+    {
+      "tablename": "tenants",
+      "indexname": "PK_tenants",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_tenants\" ON public.tenants USING btree (id)"
+    },
+    {
+      "tablename": "tenants",
+      "indexname": "UQ_tenants_slug",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_tenants_slug\" ON public.tenants USING btree (slug)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "PK_users",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_users\" ON public.users USING btree (id)"
+    },
+    {
+      "tablename": "users",
+      "indexname": "UQ_users_email",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_users_email\" ON public.users USING btree (email)"
+    },
+    {
+      "tablename": "webhook_events",
+      "indexname": "PK_webhook_events",
+      "indexdef": "CREATE UNIQUE INDEX \"PK_webhook_events\" ON public.webhook_events USING btree (id)"
+    },
+    {
+      "tablename": "webhook_events",
+      "indexname": "UQ_webhook_events_asaaas_event_id",
+      "indexdef": "CREATE UNIQUE INDEX \"UQ_webhook_events_asaaas_event_id\" ON public.webhook_events USING btree (asaas_event_id)"
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "clients",
+      "constraint_name": "PK_f1ab7cf3a5714dbc6bb4e1c28a4",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "clients",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "document_registry",
+      "constraint_name": "PK_document_registry",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "document_registry",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "opportunities",
+      "constraint_name": "PK_4bd9cd12ddc0ff48a5a97ddebce",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "opportunities",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "sales",
+      "constraint_name": "PK_4f0bc990ae81dba46da680895ea",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "sales",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "subscriptions",
+      "constraint_name": "PK_a87248d73155605cf782be9ee5e",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "subscriptions",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "teams",
+      "constraint_name": "PK_7e5523774a38b08a6236d322403",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "teams",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "tenant_users",
+      "constraint_name": "PK_8ce1bc9e3a5887c234900365447",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "tenant_users",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "tenants",
+      "constraint_name": "PK_tenants",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "tenants",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "tenants",
+      "constraint_name": "UQ_tenants_slug",
+      "constraint_type": "UNIQUE",
+      "column_name": "slug",
+      "foreign_table_name": "tenants",
+      "foreign_column_name": "slug"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "PK_users",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "users",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "users",
+      "constraint_name": "UQ_users_email",
+      "constraint_type": "UNIQUE",
+      "column_name": "email",
+      "foreign_table_name": "users",
+      "foreign_column_name": "email"
+    },
+    {
+      "table_name": "webhook_events",
+      "constraint_name": "PK_webhook_events",
+      "constraint_type": "PRIMARY KEY",
+      "column_name": "id",
+      "foreign_table_name": "webhook_events",
+      "foreign_column_name": "id"
+    },
+    {
+      "table_name": "webhook_events",
+      "constraint_name": "UQ_webhook_events_asaaas_event_id",
+      "constraint_type": "UNIQUE",
+      "column_name": "asaas_event_id",
+      "foreign_table_name": "webhook_events",
+      "foreign_column_name": "asaas_event_id"
+    }
+  ],
+  "migrations": {
+    "columns": [
+      "id",
+      "timestamp",
+      "name"
+    ],
+    "rows": [
+      {
+        "id": 1,
+        "timestamp": "1715000000000",
+        "name": "CreateTenantsAndUsers1715000000000"
+      },
+      {
+        "id": 2,
+        "timestamp": "1778781393242",
+        "name": "AddPlatformAdminAndTenantUsers1778781393242"
+      },
+      {
+        "id": 3,
+        "timestamp": "1779073244798",
+        "name": "AddFoundationalEntities1779073244798"
+      },
+      {
+        "id": 4,
+        "timestamp": "1779073607571",
+        "name": "AddTeamsAndRoles1779073607571"
+      },
+      {
+        "id": 5,
+        "timestamp": "1779073991009",
+        "name": "AddPlans1779073991009"
+      },
+      {
+        "id": 6,
+        "timestamp": "1779103926642",
+        "name": "AddCoreEntities1779103926642"
+      },
+      {
+        "id": 7,
+        "timestamp": "1779104688096",
+        "name": "AddClientAuthAccount1779104688096"
+      }
+    ]
+  },
+  "counts": [
+    {
+      "table_name": "clients",
+      "count": 6
+    },
+    {
+      "table_name": "document_registry",
+      "count": 8
+    },
+    {
+      "table_name": "opportunities",
+      "count": 6
+    },
+    {
+      "table_name": "sales",
+      "count": 4
+    },
+    {
+      "table_name": "subscriptions",
+      "count": 4
+    },
+    {
+      "table_name": "teams",
+      "count": 2
+    },
+    {
+      "table_name": "tenants",
+      "count": 2
+    },
+    {
+      "table_name": "tenant_users",
+      "count": 4
+    },
+    {
+      "table_name": "users",
+      "count": 6
+    },
+    {
+      "table_name": "webhook_events",
+      "count": 0
+    }
+  ],
+  "statuses": [
+    {
+      "table_name": "opportunities",
+      "status": "aberta",
+      "count": 2
+    },
+    {
+      "table_name": "opportunities",
+      "status": "convertida",
+      "count": 4
+    },
+    {
+      "table_name": "sales",
+      "status": "confirmed",
+      "count": 4
+    },
+    {
+      "table_name": "subscriptions",
+      "status": "ativa",
+      "count": 4
+    }
+  ],
+  "tenantConfig": [
+    {
+      "id": "[uuid]",
+      "slug": "default",
+      "asaas_sandbox": true,
+      "has_api_key": false,
+      "has_webhook_token": false
+    },
+    {
+      "id": "[uuid]",
+      "slug": "dnacare-sandbox",
+      "asaas_sandbox": true,
+      "has_api_key": false,
+      "has_webhook_token": false
+    }
+  ]
+}

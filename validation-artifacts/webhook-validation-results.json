@@ -1,0 +1,92 @@
+[
+  {
+    "id": "WH-01",
+    "status": "PASSOU",
+    "http": 401,
+    "expected": 401
+  },
+  {
+    "id": "WH-02",
+    "status": "PASSOU",
+    "http": 401,
+    "expected": 401
+  },
+  {
+    "id": "WH-03",
+    "status": "PASSOU",
+    "http": 401,
+    "expected": 401
+  },
+  {
+    "id": "WH-04",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400
+  },
+  {
+    "id": "WH-05",
+    "status": "PASSOU",
+    "http": 200,
+    "expected": 200,
+    "responseContainsToken": false
+  },
+  {
+    "id": "WH-06",
+    "status": "PASSOU",
+    "http": 200,
+    "expected": 200,
+    "db": {
+      "count": 1,
+      "status": "processed"
+    }
+  },
+  {
+    "id": "WH-06-CONCURRENT",
+    "status": "PASSOU",
+    "http": [
+      200,
+      200
+    ],
+    "expected": [
+      200,
+      200
+    ],
+    "db": {
+      "count": 1,
+      "status": "processed"
+    }
+  },
+  {
+    "id": "WH-07",
+    "status": "PASSOU",
+    "firstHttp": 500,
+    "retryHttp": 500,
+    "expected": "500/500",
+    "db": {
+      "count": 1,
+      "status": "failed"
+    }
+  },
+  {
+    "id": "WH-08",
+    "status": "PASSOU",
+    "http": 500,
+    "expected": 500,
+    "dbStatus": "failed",
+    "note": "payload intentionally references no local sale"
+  },
+  {
+    "id": "WH-09",
+    "status": "PASSOU",
+    "http": 200,
+    "expected": 200,
+    "dbStatus": "processed"
+  },
+  {
+    "id": "WH-10",
+    "status": "PASSOU",
+    "http": 200,
+    "expected": 200,
+    "note": "unsupported event is accepted and marked processed"
+  }
+]

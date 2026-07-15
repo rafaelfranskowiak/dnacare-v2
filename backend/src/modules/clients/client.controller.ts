@@ -44,7 +44,22 @@ export class ClientController {
     if (!client) return null;
     const deps = client.type === 'holder' ? await this.clientService.findDependents(client.id, req.tenantId) : [];
     const subscription = await this.subService.findByClient(client.id, req.tenantId);
-    return { ...client, dependents: deps, subscription: subscription ? { id: subscription.id, status: subscription.status, planName: subscription.planName, recurringValue: subscription.recurringValue, startDate: subscription.startDate, asaasSubscriptionId: subscription.asaasSubscriptionId } : null };
+    return {
+      ...client,
+      dependents: deps,
+      subscription: subscription
+        ? {
+            id: subscription.id,
+            status: subscription.status,
+            planName: subscription.planName,
+            recurringValue: subscription.recurringValue,
+            startDate: subscription.startDate,
+            billingCycle: subscription.billingCycle,
+            nextDueDate: subscription.nextDueDate,
+            asaasSubscriptionId: subscription.asaasSubscriptionId,
+          }
+        : null,
+    };
   }
 
   @Post(':id/dependents')
@@ -76,6 +91,17 @@ export class ClientController {
     const client = await this.clientService.findById(id, req.tenantId);
     if (!client || client.type !== 'holder') return null;
 
+    const subscription = await this.subService.findByClient(id, req.tenantId);
+    if (!subscription) {
+      throw new BadRequestException('Assinatura não encontrada para este titular');
+    }
+
+    const asaasContext = await this.getAsaasContext(req.tenantId);
+    const reactivatedSubscription = await this.subService.reactivate(
+      subscription,
+      asaasContext,
+    );
+
     await this.clientService.setStatus(id, req.tenantId, 'ativo');
 
     const deps = await this.clientService.findDependents(id, req.tenantId);
@@ -83,15 +109,11 @@ export class ClientController {
       await this.clientService.setStatus(dep.id, req.tenantId, 'ativo');
     }
 
-    const subscription = await this.subService.findByClient(id, req.tenantId);
-    if (subscription) {
-      await this.subService.setStatus(subscription.id, req.tenantId, 'ativa');
-    }
-
     return {
       clientStatus: 'ativo',
-      subscriptionStatus: subscription ? 'ativa' : null,
+      subscriptionStatus: reactivatedSubscription.status,
       dependentsStatus: 'ativo',
+      nextDueDate: reactivatedSubscription.nextDueDate,
     };
   }
 
@@ -142,19 +164,47 @@ export class ClientController {
   async cancelPlan(@Request() req: any, @Param('id') id: string, @Body() body: { reason: string }) {
     const client = await this.clientService.findById(id, req.tenantId);
     if (!client || client.type !== 'holder') return null;
-    const sub = await this.subService.findByClient(id, req.tenantId);
-    let asaasError = null;
-    if (sub?.asaasSubscriptionId) {
-      try {
-        const asaasContext = await this.getAsaasContext(req.tenantId);
-        await this.asaasService.cancelSubscription(sub.asaasSubscriptionId, asaasContext);
-      } catch (e) { asaasError = (e as any).message; await this.subService.setStatus(sub.id, req.tenantId, 'cancelamento_pendente'); }
+
+    const subscription = await this.subService.findByClient(id, req.tenantId);
+    if (!subscription) {
+      throw new BadRequestException('Assinatura não encontrada para este titular');
     }
-    await this.clientService.setStatus(id, req.tenantId, asaasError ? 'cancelamento_pendente' : 'inativo');
+
+    let asaasError: string | null = null;
+
+    try {
+      const asaasContext = await this.getAsaasContext(req.tenantId);
+      await this.subService.suspend(subscription, asaasContext);
+    } catch (error) {
+      asaasError = error instanceof Error ? error.message : String(error);
+      await this.subService.setStatus(
+        subscription.id,
+        req.tenantId,
+        'cancelamento_pendente',
+      );
+    }
+
+    const clientStatus = asaasError ? 'cancelamento_pendente' : 'inativo';
+    await this.clientService.setStatus(id, req.tenantId, clientStatus);
+
     const deps = await this.clientService.findDependents(id, req.tenantId);
     for (const dep of deps) {
-      await this.clientService.setStatus(dep.id, req.tenantId, 'vinculado_a_titular_inativo');
+      await this.clientService.setStatus(
+        dep.id,
+        req.tenantId,
+        'vinculado_a_titular_inativo',
+      );
     }
-    return { clientStatus: asaasError ? 'cancelamento_pendente' : 'inativo', subscriptionStatus: asaasError ? 'cancelamento_pendente' : 'inativa', dependentsStatus: 'vinculado_a_titular_inativo', asaasCancellation: { success: !asaasError, error: asaasError } };
+
+    return {
+      clientStatus,
+      subscriptionStatus: asaasError ? 'cancelamento_pendente' : 'inativa',
+      dependentsStatus: 'vinculado_a_titular_inativo',
+      reason: body?.reason?.trim() || null,
+      asaasSuspension: {
+        success: !asaasError,
+        error: asaasError,
+      },
+    };
   }
 }

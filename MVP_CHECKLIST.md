@@ -71,6 +71,14 @@
   - CPF/CNPJ alterado é normalizado, validado e verificado contra duplicidade local.
   - O ciclo completo do registro global de documentos continua acompanhado em `DOC-002`.
 
+- [x] **SEC-009 — Remover credencial Asaas hard-coded do seed**
+  - A chave Sandbox foi removida de `populate-sandbox.ts`.
+  - O seed exige `ASAAS_SANDBOX_API_KEY` e bloqueia explicitamente a URL de produção.
+  - A credencial anteriormente exposta deve ser rotacionada no painel Asaas.
+  - Arquivos:
+    - `backend/database/seeds/populate-sandbox.ts`
+    - `backend/.env.example`
+
 ---
 
 ## 2. Integração Asaas
@@ -178,13 +186,14 @@
   - Meta: salvar o evento, responder HTTP 200 rapidamente e processar fora da requisição.
   - Não usar somente fila em memória.
 
-- [!] **WH-009 — Idempotência de negócio**
-  - Além do ID do evento, criar garantias para:
+- [~] **WH-009 — Idempotência de negócio**
+  - Migration criada para garantir:
     - uma venda por oportunidade;
     - um titular por oportunidade;
     - uma assinatura por venda;
-    - um pagamento por ID Asaas.
-  - Adicionar constraints e comportamento idempotente nos services.
+    - um vínculo de usuário por tenant.
+  - Ainda falta a entidade/tabela local de pagamentos e a constraint por ID Asaas.
+  - A migration ainda precisa ser executada e validada no PostgreSQL local.
 
 - [ ] **WH-010 — Reprocessamento administrativo**
   - Criar endpoint/painel para listar eventos `failed`.
@@ -240,12 +249,14 @@
   - Assinatura é reutilizada pela venda.
   - Ainda falta transação local e constraints para concluir a garantia.
 
-- [!] **CONV-003 — Constraints de negócio**
-  - Adicionar pelo menos:
-    - `UNIQUE sales (tenant_id, opportunity_id)`
-    - `UNIQUE clients (tenant_id, opportunity_id, type)` para titular
-    - `UNIQUE subscriptions (tenant_id, sale_id)`
-    - `UNIQUE payments (tenant_id, asaas_payment_id)`
+- [~] **CONV-003 — Constraints de negócio**
+  - Criadas na migration:
+    - `UNIQUE sales (tenant_id, opportunity_id)`;
+    - índice único parcial para titular em `clients (tenant_id, opportunity_id)`;
+    - `UNIQUE subscriptions (tenant_id, sale_id)`;
+    - `UNIQUE tenant_users (tenant_id, user_id)`.
+  - `payments (tenant_id, asaas_payment_id)` continua pendente porque o ledger local ainda não existe.
+  - Validação da migration no banco local permanece pendente.
 
 - [!] **DOC-001 — Transferência de documento**
   - Implementar operações transacionais `claim`, `transfer` e `release`.
@@ -259,13 +270,17 @@
 
 ## 6. Assinaturas
 
-- [x] **SUB-001 — Valor recorrente correto**
-  - `recurringValue` usa base + dependentes - desconto.
-  - Taxa de adesão não é enviada para os ciclos seguintes.
+- [~] **SUB-001 — Valor recorrente correto**
+  - O serviço usa `base + dependentes - desconto`.
+  - O relatório local encontrou uma assinatura antiga criada pelo seed com a taxa de adesão no recorrente.
+  - A migration corrige os dados existentes e o seed passou a criar a assinatura com o valor recorrente correto.
+  - Falta executar a migration e repetir a validação local.
 
-- [x] **SUB-002 — Próximo vencimento correto**
+- [~] **SUB-002 — Próximo vencimento correto**
   - `nextDueDate` é calculado a partir do vencimento da cobrança confirmada mais um ciclo.
-  - Não é criada uma segunda cobrança para o mesmo ciclo inicial.
+  - A nova migration adiciona `billing_cycle` e `next_due_date` em `subscriptions`.
+  - O seed também persiste os dois campos.
+  - Falta executar a migration e validar o fluxo real no Sandbox.
 
 - [x] **SUB-003 — Ciclo não fixo**
   - Ciclo vem do snapshot da versão do plano.
@@ -273,11 +288,14 @@
 
 - [~] **SUB-004 — Não duplicar assinatura**
   - Retry procura assinatura local pela venda antes de criar outra.
-  - Ainda falta constraint de banco e reconciliação específica para futuro Checkout recorrente.
+  - Foi criada constraint única por `tenant_id + sale_id`.
+  - Ainda falta executar a migration e implementar reconciliação específica para futuro Checkout recorrente.
 
-- [ ] **SUB-005 — Suspensão, reativação e cancelamento**
-  - Definir transições locais e operações correspondentes no Asaas.
-  - Registrar motivo, usuário e data.
+- [~] **SUB-005 — Suspensão, reativação e cancelamento**
+  - A rota atual de desativação passa a suspender a assinatura no Asaas com `status: INACTIVE`.
+  - Reativação atualiza o Asaas com `status: ACTIVE` e novo `nextDueDate` antes de alterar o estado local.
+  - Falha externa não ativa mais cliente/assinatura somente no banco.
+  - Cancelamento definitivo, motivo auditável e histórico de transições ainda estão pendentes.
 
 ---
 
@@ -319,14 +337,26 @@
 - [!] **QA-003 — E2E Sandbox Asaas**
   - Oportunidade → cobrança → webhook → cliente → assinatura.
 
+- [!] **QA-004 — Build de produção do frontend**
+  - O relatório local registrou falha `ENOENT` ao mover `.next/export/500.html`.
+  - Reproduzir em workspace limpo e corrigir antes da release.
+  - Typecheck e lint passaram, com avisos de hooks.
+
 - [x] **DB-000 — Metadata explícito para coluna anulável `TenantUser.teamId`**
   - `string | null` gera metadata refletido como `Object`; o PostgreSQL/TypeORM não consegue inferir o tipo.
   - A coluna agora declara `type: 'varchar'`, alinhada à migration `AddTeamsAndRoles`, que criou `team_id` como `character varying`.
   - Arquivo: `backend/src/modules/tenant/tenant-user.entity.ts`
-  - Verificação pendente no ambiente local: inicialização do NestJS e conexão TypeORM sem `DataTypeNotSupportedError`.
+  - Verificado no PostgreSQL local e no startup do NestJS em porta livre, conforme `VALIDATION_REPORT.md`.
 
-- [ ] **DB-001 — Migrations de constraints**
-  - Criar migrations explícitas; não depender de synchronize.
+- [~] **DB-001 — Migrations de constraints**
+  - Criada migration explícita para:
+    - `tenant_users(tenant_id, user_id)`;
+    - `sales(tenant_id, opportunity_id)`;
+    - titular em `clients(tenant_id, opportunity_id)`;
+    - `subscriptions(tenant_id, sale_id)`.
+  - A migration bloqueia a execução com mensagem clara quando encontra duplicidades.
+  - Ainda falta executar e validar a migration no PostgreSQL local.
+  - Arquivo: `backend/database/migrations/1784149200000-HardenMvpConstraintsAndSubscriptions.ts`
 
 - [ ] **OPS-001 — Health check e logs**
   - Health do banco.
@@ -346,15 +376,15 @@
 
 O MVP só pode ser marcado como concluído quando todos os itens abaixo passarem:
 
-- [ ] Tenant A não acessa dados do tenant B.
+- [x] Tenant A não acessa dados do tenant B nos cenários executados no relatório local.
 - [ ] Nenhuma API devolve chave Asaas ou token de webhook.
 - [ ] Uma oportunidade gera no máximo uma venda ativa.
 - [ ] Boleto é criado corretamente no Sandbox.
 - [x] Cartão funciona de fato ou é removido da interface do MVP.
-- [x] Taxa de adesão não é recorrente.
-- [x] O primeiro ciclo não é cobrado duas vezes.
-- [ ] Webhook inválido é rejeitado.
-- [ ] Webhook duplicado não duplica dados.
+- [ ] Taxa de adesão não é recorrente após executar a migration de reparo.
+- [ ] O primeiro ciclo não é cobrado duas vezes em teste E2E Sandbox.
+- [x] Webhook inválido é rejeitado.
+- [x] Webhook duplicado não duplica o registro de evento nos testes sequencial e concorrente.
 - [ ] Falha parcial pode ser reprocessada.
 - [ ] Cancelamento/suspensão fica consistente localmente e no Asaas.
 - [ ] Fluxo completo passa em teste E2E no Sandbox.
@@ -370,32 +400,32 @@ Executar inicialmente apenas com tenants de teste e chaves do Sandbox.
 
 ### Primeira implementação — segurança e webhook
 
-- [ ] Login de Super Admin continua acessando administração global.
-- [ ] Administrador de unidade acessa equipe, oportunidades, vendas e clientes da própria unidade.
-- [ ] Representante não consegue criar time, alterar papel ou acessar administração global.
-- [ ] Usuário do tenant A recebe `403` ao usar `x-tenant-id` do tenant B sem vínculo.
-- [ ] Usuário administrador no tenant A e representante no tenant B não mantém o papel de administrador ao trocar para B.
-- [ ] `GET /api/users` nunca retorna `password`.
-- [ ] Webhook com `asaas-access-token` ausente ou incorreto retorna `401`.
-- [ ] Webhook com token correto e payload válido é aceito.
-- [ ] Reenvio do mesmo `event.id` não repete uma conversão concluída.
+- [x] Login de Super Admin continua acessando administração global.
+- [x] Administrador de unidade acessa oportunidades da própria unidade; demais rotas seguem na suíte futura.
+- [x] Representante recebe `403` ao acessar administração global.
+- [x] Usuário do tenant A recebe `403` ao usar `x-tenant-id` do tenant B sem vínculo.
+- [x] Usuário administrador no tenant A e representante no tenant B assume o papel correto de representante.
+- [x] `GET /api/users` não retornou `password`, hash ou segredos Asaas.
+- [x] Webhook com `asaas-access-token` ausente ou incorreto retorna `401`.
+- [x] Webhook com token correto e payload válido foi aceito nos testes sintéticos.
+- [x] Reenvio sequencial e concorrente do mesmo `event.id` manteve uma única linha processada.
 
 ### Hotfix de inicialização TypeORM
 
-- [ ] Backend inicia e conecta ao PostgreSQL sem `DataTypeNotSupportedError` em `TenantUser.teamId`.
-- [ ] A coluna `tenant_users.team_id` continua como `character varying` e aceita `NULL`.
+- [x] Backend inicia e conecta ao PostgreSQL sem `DataTypeNotSupportedError` em `TenantUser.teamId`.
+- [x] A coluna `tenant_users.team_id` continua como `character varying` e aceita `NULL`.
 
 ### Segunda implementação — checkout e recorrência
 
-- [ ] Tenant sem chave Asaas recebe erro antes de criar venda.
+- [x] Tenant sem chave Asaas recebe erro antes de criar venda.
 - [ ] Checkout por boleto cria cliente e cobrança no Sandbox da unidade correta.
 - [ ] Repetir o mesmo checkout retorna o mesmo `saleId` e não cria outra cobrança.
-- [ ] Cartão não aparece na interface e tentativa direta recebe erro explícito.
+- [x] Cartão não aparece na interface e tentativa direta recebe erro explícito.
 - [ ] `PAYMENT_CONFIRMED` cria um titular, os dependentes e uma assinatura somente uma vez.
 - [ ] Valor da assinatura não contém taxa de adesão.
 - [ ] Primeiro vencimento recorrente ocorre no ciclo seguinte ao vencimento pago.
 - [ ] Consulta financeira usa a conta Asaas do tenant correto.
-- [ ] Quitação consolidada permanece bloqueada até existir modelo de acordo.
+- [x] Quitação consolidada permanece bloqueada até existir modelo de acordo.
 
 ---
 
@@ -405,14 +435,16 @@ Executar inicialmente apenas com tenants de teste e chaves do Sandbox.
 |---|---|---|---|
 | 15/07/2026 | Fundação de segurança e webhook | JWT com papel atual, segredos ocultos, tenants restritos ao Super Admin, webhook por tenant, token validado, status de eventos, payload `customer`, `User-Agent`, timeout e envio sequencial | Sintaxe TypeScript/TSX verificada nos arquivos alterados. Build completo bloqueado no ambiente por falha de rede durante `npm ci` (`EAI_AGAIN` ao baixar binário/headers do `bcrypt`). |
 | 15/07/2026 | Isolamento, checkout e recorrência segura | Escopo de usuários/vínculos/times, DTO de cliente, contexto Asaas obrigatório, boleto idempotente, cartão desabilitado, plano validado, conversão retomável, recorrência sem adesão e financeiro por tenant | Sintaxe TypeScript/TSX verificada em 23 arquivos. Build completo ainda depende da instalação das dependências do projeto. Testes manuais listados na seção 10. |
-| 15/07/2026 | Hotfix TypeORM `teamId` | Tipo da coluna `team_id` declarado explicitamente como `varchar` para evitar metadata `Object` em propriedade `string | null` | Revisão estática concluída; inicialização real deve ser confirmada no ambiente local com PostgreSQL. |
+| 15/07/2026 | Hotfix TypeORM `teamId` | Tipo da coluna `team_id` declarado explicitamente como `varchar` para evitar metadata `Object` em propriedade `string | null` | Confirmado no PostgreSQL local e no startup do NestJS pelo relatório de validação. |
+| 15/07/2026 | Fase 3 — constraints, seed e ciclo da assinatura | Migration de idempotência, reparo de recorrência, persistência de ciclo/vencimento, remoção de segredo hard-coded e suspensão/reativação sincronizadas | Sintaxe TypeScript verificada. Execução da migration, build completo e testes locais permanecem a cargo do ambiente conectado ao banco. |
 
 ## 12. Próxima ordem de execução
 
-1. Executar os testes manuais de isolamento e Sandbox da seção 10.
-2. Criar migrations de constraints e índices de idempotência.
+1. Executar `migration:run` e repetir os testes de constraints/recorrência/reativação.
+2. Rotacionar a credencial Sandbox anteriormente exposta no seed.
 3. Refatorar a conversão para transação local e retomada segura.
-4. Implementar processamento assíncrono durável de webhooks.
-5. Cancelar a cobrança pendente no Asaas ao cancelar a oportunidade.
-6. Implementar testes unitários, integração e E2E.
-7. Revisar dependências vulneráveis e preparar a liberação.
+4. Implementar ledger local de pagamentos e constraint por `asaas_payment_id`.
+5. Implementar processamento assíncrono durável de webhooks.
+6. Corrigir o build de produção do frontend.
+7. Implementar testes unitários, integração e E2E Sandbox.
+8. Revisar dependências vulneráveis e preparar a liberação.

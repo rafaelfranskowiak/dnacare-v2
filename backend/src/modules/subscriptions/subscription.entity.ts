@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 
 @Entity('subscriptions')
 @Index(['tenantId', 'clientId'], { unique: true })
+@Index('UQ_subscriptions_tenant_sale', ['tenantId', 'saleId'], { unique: true })
 export class Subscription {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -38,6 +39,12 @@ export class Subscription {
 
   @Column({ name: 'start_date', type: 'date' })
   startDate: string;
+
+  @Column({ name: 'billing_cycle', length: 20, default: 'MONTHLY' })
+  billingCycle: string;
+
+  @Column({ name: 'next_due_date', type: 'date', nullable: true })
+  nextDueDate: string | null;
 
   @Column({ name: 'cancel_reason', length: 500, nullable: true })
   cancelReason: string;
