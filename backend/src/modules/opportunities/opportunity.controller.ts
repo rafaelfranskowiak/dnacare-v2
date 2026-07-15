@@ -34,7 +34,7 @@ export class OpportunityController {
   @Roles('representante', 'gerente', 'admin')
   @UseGuards(RolesGuard)
   async create(@Request() req: any, @Body() dto: CreateOpportunityDto) {
-    return this.oppService.create(req.tenantId, req.user.sub, dto.name, dto.document);
+    return this.oppService.create(req.tenantId, req.user.id, dto.name, dto.document);
   }
 
   @Get(':id')
@@ -72,7 +72,7 @@ export class OpportunityController {
   @Roles('representante', 'gerente', 'admin')
   @UseGuards(RolesGuard)
   async cancel(@Request() req: any, @Param('id') id: string, @Body() dto: CancelOpportunityDto) {
-    const opp = await this.oppService.cancel(id, req.tenantId, dto.reason, req.user.sub);
+    const opp = await this.oppService.cancel(id, req.tenantId, dto.reason, req.user.id);
     let saleStatus: string | null = null;
     try {
       const sale = await this.saleService.cancelBeforePayment(id, req.tenantId);
