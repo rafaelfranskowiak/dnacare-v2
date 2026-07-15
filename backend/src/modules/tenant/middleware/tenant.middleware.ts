@@ -6,40 +6,65 @@ import { TenantService } from '../tenant.service';
 export class TenantMiddleware implements NestMiddleware {
   constructor(private readonly tenantService: TenantService) {}
 
-  private readonly publicPaths = ['/auth/login', '/auth/admin/login', '/tenants/public'];
+  private normalizePath(req: Request): string {
+    const rawPath = req.originalUrl || req.url || req.path || '';
+    const pathOnly = rawPath.split('?')[0];
+    return pathOnly.replace(/^\/api(?=\/)/, '');
+  }
+
+  private isPublicPath(req: Request): boolean {
+    const requestPath = this.normalizePath(req);
+
+    if (
+      requestPath === '/auth/login'
+      || requestPath === '/auth/admin/login'
+      || requestPath === '/tenants/public'
+    ) {
+      return true;
+    }
+
+    return req.method === 'POST'
+      && /^\/webhooks\/asaas\/[^/]+$/.test(requestPath);
+  }
 
   async use(req: Request, _res: Response, next: NextFunction) {
-    const requestPath = req.originalUrl || req.url || req.path || '';
-    const isPublic = this.publicPaths.some((p) => requestPath.includes(p));
-    if (isPublic) {
+    if (this.isPublicPath(req)) {
       next();
       return;
     }
 
-    // Try JWT token first (Bearer) — extract tenantId from payload
-    const authHeader = req.headers['authorization'] as string | undefined;
+    // O middleware apenas identifica o tenant. A autenticidade do JWT é
+    // validada pelo JwtAuthGuard nas rotas protegidas.
+    const authHeader = req.headers.authorization;
     let jwtTenantId: string | undefined;
+
     if (authHeader?.startsWith('Bearer ')) {
       try {
         const token = authHeader.slice(7);
-        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        const encodedPayload = token.split('.')[1];
+        const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString());
         jwtTenantId = payload.tenantId;
       } catch {
-        // Ignore parse errors — fall through to header check
+        // O JwtAuthGuard rejeitará tokens inválidos nas rotas protegidas.
       }
     }
 
-    // Try x-tenant-id header
-    const header = req.headers['x-tenant-id'] as string | undefined;
-    const lookupValue = header || jwtTenantId;
+    const headerTenantId = req.headers['x-tenant-id'];
+    const lookupValue = (
+      typeof headerTenantId === 'string' ? headerTenantId : jwtTenantId
+    ) || jwtTenantId;
 
-    if (!lookupValue) throw new UnauthorizedException('x-tenant-id header required');
+    if (!lookupValue) {
+      throw new UnauthorizedException('x-tenant-id header required');
+    }
 
     let tenant = await this.tenantService.findBySlug(lookupValue);
     if (!tenant) {
       tenant = await this.tenantService.findById(lookupValue);
     }
-    if (!tenant) throw new UnauthorizedException('Tenant not found');
+    if (!tenant) {
+      throw new UnauthorizedException('Tenant not found');
+    }
 
     (req as any).tenantId = tenant.id;
     next();

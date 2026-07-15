@@ -21,7 +21,18 @@ export class TeamService {
     return this.teamRepo.findOne({ where: { id, tenantId } });
   }
 
+  private async validateManager(managerId: string, tenantId: string): Promise<void> {
+    const manager = await this.tenantUserRepo.findOne({
+      where: { userId: managerId, tenantId, status: 'active' },
+    });
+
+    if (!manager || !['admin', 'gerente'].includes(manager.role)) {
+      throw new BadRequestException('Gestor deve ser administrador ou gerente ativo desta unidade');
+    }
+  }
+
   async create(tenantId: string, name: string, managerId: string): Promise<Team> {
+    await this.validateManager(managerId, tenantId);
     const team = this.teamRepo.create({ tenantId, name, managerId });
     return this.teamRepo.save(team);
   }
@@ -29,6 +40,11 @@ export class TeamService {
   async update(id: string, tenantId: string, data: Partial<Pick<Team, 'name' | 'managerId'>>): Promise<Team> {
     const team = await this.findById(id, tenantId);
     if (!team) throw new BadRequestException('Time não encontrado');
+
+    if (data.managerId !== undefined) {
+      await this.validateManager(data.managerId, tenantId);
+    }
+
     Object.assign(team, data);
     return this.teamRepo.save(team);
   }
@@ -43,20 +59,35 @@ export class TeamService {
     return this.tenantUserRepo.find({ where: { teamId, tenantId } });
   }
 
-  async addMember(teamId: string, userId: string, tenantId: string, role: 'admin' | 'gerente' | 'representante'): Promise<TenantUser> {
-    const existing = await this.tenantUserRepo.findOne({ where: { userId, tenantId } });
+  async addMember(
+    teamId: string,
+    userId: string,
+    tenantId: string,
+    role: 'admin' | 'gerente' | 'representante',
+  ): Promise<TenantUser> {
+    const team = await this.findById(teamId, tenantId);
+    if (!team) throw new BadRequestException('Time não encontrado nesta unidade');
+
+    const existing = await this.tenantUserRepo.findOne({
+      where: { userId, tenantId, status: 'active' },
+    });
     if (!existing) throw new BadRequestException('Usuário não pertence a esta unidade');
-    existing.teamId = teamId;
+
+    existing.teamId = team.id;
     existing.role = role;
     return this.tenantUserRepo.save(existing);
   }
 
-  async removeMember(userId: string, tenantId: string): Promise<TenantUser> {
-    const member = await this.tenantUserRepo.findOne({ where: { userId, tenantId } });
-    if (member) {
-      member.teamId = '';
-      return this.tenantUserRepo.save(member);
+  async removeMember(teamId: string, userId: string, tenantId: string): Promise<TenantUser> {
+    const member = await this.tenantUserRepo.findOne({
+      where: { userId, tenantId, teamId },
+    });
+
+    if (!member) {
+      throw new BadRequestException('Membro não encontrado neste time');
     }
-    throw new BadRequestException('Membro não encontrado');
+
+    member.teamId = null;
+    return this.tenantUserRepo.save(member);
   }
 }

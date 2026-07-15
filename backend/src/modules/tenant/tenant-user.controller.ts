@@ -9,6 +9,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { TenantUserService } from './tenant-user.service';
 import { CreateTenantUserDto } from './dto/create-tenant-user.dto';
+import { UpdateTenantUserDto } from './dto/update-tenant-user.dto';
 
 @Controller('tenant-users')
 @UseGuards(JwtAuthGuard, TenantAccessGuard)
@@ -16,20 +17,29 @@ export class TenantUserController {
   constructor(private readonly service: TenantUserService) {}
 
   @Get()
-  async list(@Request() req: any, @Query('tenant_id') tenantId?: string) {
-    const tid = tenantId || req.tenantId;
-    return { data: await this.service.findByTenant(tid) };
+  async list(@Request() req: any, @Query('tenant_id') requestedTenantId?: string) {
+    const tenantId = req.user.is_platform_admin && requestedTenantId
+      ? requestedTenantId
+      : req.tenantId;
+
+    return { data: await this.service.findByTenant(tenantId) };
   }
 
   @Post()
   @Roles('admin')
   @UseGuards(RolesGuard)
-  async create(@Body() dto: CreateTenantUserDto) {
-    const existing = await this.service.findByUserAndTenant(dto.user_id, dto.tenant_id);
-    if (existing) throw new ConflictException('Usuário já vinculado a esta unidade');
+  async create(@Request() req: any, @Body() dto: CreateTenantUserDto) {
+    const tenantId = req.user.is_platform_admin ? dto.tenant_id : req.tenantId;
+    const existing = await this.service.findAnyByUserAndTenant(dto.user_id, tenantId);
+
+    if (existing) {
+      throw new ConflictException('Usuário já vinculado a esta unidade');
+    }
+
     return this.service.create({
-      tenantId: dto.tenant_id,
+      tenantId,
       userId: dto.user_id,
+      role: dto.role || 'representante',
       status: dto.status || 'active',
     });
   }
@@ -38,24 +48,53 @@ export class TenantUserController {
   @Roles('admin')
   @UseGuards(RolesGuard)
   async update(
+    @Request() req: any,
     @Param('id') id: string,
-    @Body() body: { role?: string; teamId?: string; status?: string },
+    @Body() body: UpdateTenantUserDto,
   ) {
+    const existing = await this.service.findById(
+      id,
+      req.user.is_platform_admin ? undefined : req.tenantId,
+    );
+
+    if (!existing) {
+      throw new NotFoundException('Vínculo não encontrado');
+    }
+
     if (body.status) {
-      const entity = await this.service.updateStatus(id, body.status);
+      const entity = await this.service.updateStatus(id, existing.tenantId, body.status);
       if (!entity) throw new NotFoundException('Vínculo não encontrado');
       return entity;
     }
-    const entity = await this.service.updateRole(id, body.role || '', body.teamId);
-    if (!entity) throw new NotFoundException('Vínculo não encontrado');
+
+    const entity = await this.service.updateRole(
+      id,
+      existing.tenantId,
+      body.role || existing.role || 'representante',
+      body.teamId,
+    );
+
+    if (!entity) {
+      throw new NotFoundException('Vínculo não encontrado');
+    }
+
     return entity;
   }
 
   @Delete(':id')
   @Roles('admin')
   @UseGuards(RolesGuard)
-  async remove(@Param('id') id: string) {
-    await this.service.remove(id);
+  async remove(@Request() req: any, @Param('id') id: string) {
+    const existing = await this.service.findById(
+      id,
+      req.user.is_platform_admin ? undefined : req.tenantId,
+    );
+
+    if (!existing) {
+      throw new NotFoundException('Vínculo não encontrado');
+    }
+
+    await this.service.remove(id, existing.tenantId);
     return null;
   }
 }

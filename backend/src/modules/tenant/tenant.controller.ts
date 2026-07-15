@@ -1,9 +1,16 @@
 import {
-  Controller, Get, Post, Patch, Delete,
-  Body, Param, UseGuards, ConflictException, NotFoundException, Request,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { TenantAccessGuard } from './guards/tenant-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { TenantService } from './tenant.service';
@@ -16,17 +23,19 @@ export class TenantController {
 
   @Get('public')
   async listPublic() {
-    return { data: await this.service.findAll() };
+    return { data: await this.service.findPublic() };
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, TenantAccessGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   async list() {
     return { data: await this.service.findAll() };
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, TenantAccessGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   async get(@Param('id') id: string) {
     const tenant = await this.service.findById(id);
     if (!tenant) throw new NotFoundException('Tenant not found');
@@ -34,7 +43,8 @@ export class TenantController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, TenantAccessGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   async create(@Body() dto: CreateTenantDto) {
     const existing = await this.service.findBySlug(dto.slug);
     if (existing) throw new ConflictException('Slug already in use');
@@ -42,7 +52,8 @@ export class TenantController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, TenantAccessGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   async update(@Param('id') id: string, @Body() dto: UpdateTenantDto) {
     if (dto.slug) {
       const existing = await this.service.findBySlug(dto.slug);
@@ -54,14 +65,15 @@ export class TenantController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, TenantAccessGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('super_admin')
   async remove(@Param('id') id: string) {
     await this.service.remove(id);
     return null;
   }
 
   @Patch(':id/asaas-config')
-  @UseGuards(JwtAuthGuard, TenantAccessGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super_admin')
   async updateAsaasConfig(
     @Param('id') id: string,
@@ -72,7 +84,10 @@ export class TenantController {
     return {
       id: tenant.id,
       asaasSandbox: tenant.asaasSandbox,
-      asaasWebhookConfigured: !!tenant.asaasWebhookId,
+      asaasConfigured: body.asaasApiKey !== undefined
+        ? Boolean(body.asaasApiKey)
+        : undefined,
+      asaasWebhookConfigured: Boolean(tenant.asaasWebhookId),
     };
   }
 }

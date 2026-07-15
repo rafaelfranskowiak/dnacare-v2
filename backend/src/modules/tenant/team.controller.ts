@@ -64,8 +64,12 @@ export class TeamController {
   @Delete(':id/members/:userId')
   @Roles('admin')
   @UseGuards(RolesGuard)
-  async removeMember(@Request() req: any, @Param('userId') userId: string) {
-    await this.teamService.removeMember(userId, req.tenantId);
+  async removeMember(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ) {
+    await this.teamService.removeMember(id, userId, req.tenantId);
     return null;
   }
 }

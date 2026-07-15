@@ -82,7 +82,7 @@ export default function EquipePage() {
     try {
       const user = await api('/users', { method: 'POST', body: JSON.stringify({ name: newUser.name, email: newUser.email, password: newUser.password, tenantId: localStorage.getItem('tenantId') || 'default' }) });
       const tid = localStorage.getItem('tenantId') || 'default';
-      await api('/tenant-users', { method: 'POST', body: JSON.stringify({ tenant_id: tid, user_id: user.id, status: 'active' }) });
+      await api('/tenant-users', { method: 'POST', body: JSON.stringify({ tenant_id: tid, user_id: user.id, role: newUser.role, status: 'active' }) });
       setShowCreateUser(false); setNewUser({ name: '', email: '', password: '', role: 'representante' });
       load();
     } catch { }

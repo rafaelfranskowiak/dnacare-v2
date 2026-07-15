@@ -2,9 +2,7 @@ import { Injectable, BadRequestException, NotFoundException, Logger } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Sale } from './sale.entity';
-import { Opportunity } from '../opportunities/opportunity.entity';
-import { PlanVersion } from '../plans/plan-version.entity';
-import { AsaasService } from '../asaas/asaas.service';
+import { AsaasService, AsaasTenantContext } from '../asaas/asaas.service';
 import { calculatePricing, PricingInput } from '../plans/pricing-engine';
 
 const ALLOWED_SALE_TRANSITIONS: Record<string, string[]> = {
@@ -47,117 +45,147 @@ export class SaleService {
     planVersion: any,
     paymentMethod: string,
     dependentCount: number,
-    tenantApiKey?: string,
+    asaasContext: AsaasTenantContext,
   ): Promise<{ sale: Sale; checkoutUrl?: string; bankSlipUrl?: string }> {
-    // Calculate pricing
-    const pricingInput: PricingInput = {
-      baseValue: Number(planVersion.baseValue),
-      dependentRule: planVersion.dependentRule,
-      includedDependents: planVersion.includedDependents,
-      dependentValue: Number(planVersion.dependentValue || 0),
-      tiers: planVersion.tiersConfig || null,
-      admissionFee: Number(planVersion.admissionFee || 0),
-      discount: 0,
-      dependentCount,
-    };
+    if (paymentMethod !== 'BOLETO') {
+      throw new BadRequestException(
+        'Cartão de crédito ainda não está disponível. Selecione boleto para concluir o MVP atual.',
+      );
+    }
 
-    const pricing = calculatePricing(pricingInput);
+    let sale = await this.findByOpportunity(opportunity.id, tenantId);
 
-    // Create Asaas customer
-    const asaasCustomer = await this.asaasService.createCustomer({
-      name: opportunity.name,
-      cpfCnpj: opportunity.documentNormalized,
-      email: opportunity.email,
-      phone: opportunity.phone,
-      mobilePhone: opportunity.phone,
-      postalCode: opportunity.postalCode,
-      address: opportunity.address,
-      addressNumber: opportunity.addressNumber,
-      province: opportunity.neighborhood,
-      externalReference: opportunity.id,
-    }, tenantApiKey);
+    if (sale?.asaasPaymentId) {
+      return {
+        sale,
+        checkoutUrl: sale.asaasCheckoutUrl || undefined,
+        bankSlipUrl: sale.asaasBankSlipUrl || undefined,
+      };
+    }
 
-    // Create sale record
-    const planSnapshot = {
-      planId: planVersion.planId,
-      planVersionId: planVersion.id,
-      planName: planVersion.name,
-      baseValue: planVersion.baseValue,
-      dependentRule: planVersion.dependentRule,
-      includedDependents: planVersion.includedDependents,
-      dependentValue: planVersion.dependentValue,
-      tiersConfig: planVersion.tiersConfig,
-      admissionFee: planVersion.admissionFee,
-    };
+    if (sale && sale.status !== 'pending_payment') {
+      throw new BadRequestException(
+        `Já existe uma venda com status "${sale.status}" para esta oportunidade`,
+      );
+    }
 
-    const saleData: Partial<Sale> = {
-      tenantId,
-      opportunityId: opportunity.id,
-      sellerId: opportunity.sellerId,
-      planId: planVersion.planId,
-      planVersionId: planVersion.id,
-      planSnapshot,
-      dependentCount,
-      totalLives: 1 + dependentCount,
-      baseValue: pricing.baseValue,
-      dependentsValue: pricing.dependentsValue,
-      admissionFee: pricing.admissionFee,
-      subtotal: pricing.subtotal,
-      discount: pricing.discount,
-      totalValue: pricing.total,
-      calculationMemory: JSON.parse(pricing.calculationMemory),
-      paymentMethod,
-      status: 'pending_payment',
-      asaasCustomerId: asaasCustomer.id,
-    };
+    if (!sale) {
+      const pricingInput: PricingInput = {
+        baseValue: Number(planVersion.baseValue),
+        dependentRule: planVersion.dependentRule,
+        includedDependents: planVersion.includedDependents,
+        dependentValue: Number(planVersion.dependentValue || 0),
+        tiers: planVersion.tiersConfig || null,
+        admissionFee: Number(planVersion.admissionFee || 0),
+        discount: 0,
+        dependentCount,
+      };
 
-    const sale = await this.saleRepo.save(this.saleRepo.create(saleData));
+      const pricing = calculatePricing(pricingInput);
 
-    // Generate payment
+      const customersResponse = await this.asaasService.findCustomerByCpfCnpj(
+        opportunity.documentNormalized,
+        asaasContext,
+      );
+      const customers = Array.isArray(customersResponse?.data)
+        ? customersResponse.data
+        : [];
+      const existingCustomer = customers.find(
+        (customer: any) => customer.externalReference === opportunity.id,
+      ) || customers[0];
+
+      const asaasCustomer = existingCustomer || await this.asaasService.createCustomer(
+        {
+          name: opportunity.name,
+          cpfCnpj: opportunity.documentNormalized,
+          email: opportunity.email,
+          phone: opportunity.phone,
+          mobilePhone: opportunity.phone,
+          postalCode: opportunity.postalCode,
+          address: opportunity.address,
+          addressNumber: opportunity.addressNumber,
+          province: opportunity.neighborhood,
+          externalReference: opportunity.id,
+        },
+        asaasContext,
+      );
+
+      const planSnapshot = {
+        planId: planVersion.planId,
+        planVersionId: planVersion.id,
+        planName: planVersion.name,
+        billingCycle: planVersion.billingCycle,
+        baseValue: planVersion.baseValue,
+        dependentRule: planVersion.dependentRule,
+        includedDependents: planVersion.includedDependents,
+        dependentValue: planVersion.dependentValue,
+        tiersConfig: planVersion.tiersConfig,
+        admissionFee: planVersion.admissionFee,
+      };
+
+      const saleData: Partial<Sale> = {
+        tenantId,
+        opportunityId: opportunity.id,
+        sellerId: opportunity.sellerId,
+        planId: planVersion.planId,
+        planVersionId: planVersion.id,
+        planSnapshot,
+        dependentCount,
+        totalLives: 1 + dependentCount,
+        baseValue: pricing.baseValue,
+        dependentsValue: pricing.dependentsValue,
+        admissionFee: pricing.admissionFee,
+        subtotal: pricing.subtotal,
+        discount: pricing.discount,
+        totalValue: pricing.total,
+        calculationMemory: JSON.parse(pricing.calculationMemory),
+        paymentMethod,
+        status: 'pending_payment',
+        asaasCustomerId: asaasCustomer.id,
+      };
+
+      sale = await this.saleRepo.save(this.saleRepo.create(saleData));
+    }
+
+    if (!sale.asaasCustomerId) {
+      throw new BadRequestException('Venda sem cliente Asaas associado');
+    }
+
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 3);
     const dueDateStr = dueDate.toISOString().split('T')[0];
 
-    if (paymentMethod === 'BOLETO') {
-      const payment = await this.asaasService.createPayment({
-        customerId: asaasCustomer.id,
+    const payment = await this.asaasService.createPayment(
+      {
+        customerId: sale.asaasCustomerId,
         billingType: 'BOLETO',
-        value: pricing.total,
+        value: Number(sale.totalValue),
         dueDate: dueDateStr,
-        description: `${planVersion.name}`,
+        description: String(sale.planSnapshot?.planName || 'Plano DNA Care'),
         externalReference: sale.id,
-      }, tenantApiKey);
-
-      sale.asaasPaymentId = payment.id;
-      sale.asaasBankSlipUrl = payment.bankSlipUrl;
-      await this.saleRepo.save(sale);
-
-      return { sale, bankSlipUrl: payment.bankSlipUrl };
-    }
-
-    // Credit card — not implemented yet via direct payment, would need checkout
-    const payment = await this.asaasService.createPayment({
-      customerId: asaasCustomer.id,
-      billingType: 'BOLETO',
-      value: pricing.total,
-      dueDate: dueDateStr,
-      description: `${planVersion.name}`,
-      externalReference: sale.id,
-    }, tenantApiKey);
+      },
+      asaasContext,
+    );
 
     sale.asaasPaymentId = payment.id;
-    sale.asaasBankSlipUrl = payment.bankSlipUrl;
+    sale.asaasBankSlipUrl = payment.bankSlipUrl || payment.invoiceUrl || null;
     await this.saleRepo.save(sale);
 
-    return { sale, bankSlipUrl: payment.bankSlipUrl };
+    return { sale, bankSlipUrl: sale.asaasBankSlipUrl || undefined };
   }
 
   async confirmSale(id: string, tenantId: string): Promise<Sale> {
     const sale = await this.findById(id, tenantId);
     if (!sale) throw new NotFoundException('Venda não encontrada');
+
+    if (sale.status === 'confirmed') {
+      return sale;
+    }
+
     if (!ALLOWED_SALE_TRANSITIONS[sale.status]?.includes('confirmed')) {
       throw new BadRequestException(`Não é possível confirmar venda com status "${sale.status}"`);
     }
+
     sale.status = 'confirmed';
     return this.saleRepo.save(sale);
   }
@@ -166,6 +194,19 @@ export class SaleService {
     const sale = await this.findById(id, tenantId);
     if (!sale) throw new NotFoundException('Venda não encontrada');
     if (sale.status !== 'pending_payment') return sale;
+    sale.status = 'cancelled_before_payment';
+    return this.saleRepo.save(sale);
+  }
+
+  async cancelBeforePaymentByOpportunity(
+    opportunityId: string,
+    tenantId: string,
+  ): Promise<Sale | null> {
+    const sale = await this.findByOpportunity(opportunityId, tenantId);
+    if (!sale || sale.status !== 'pending_payment') {
+      return sale;
+    }
+
     sale.status = 'cancelled_before_payment';
     return this.saleRepo.save(sale);
   }
@@ -181,7 +222,12 @@ export class SaleService {
     return this.saleRepo.findOne({ where: { opportunityId, tenantId } });
   }
 
-  async findByAsaasPaymentId(asaasPaymentId: string): Promise<Sale | null> {
-    return this.saleRepo.findOne({ where: { asaasPaymentId } });
+  async findByAsaasPaymentId(
+    asaasPaymentId: string,
+    tenantId?: string,
+  ): Promise<Sale | null> {
+    return this.saleRepo.findOne({
+      where: tenantId ? { asaasPaymentId, tenantId } : { asaasPaymentId },
+    });
   }
 }

@@ -1,7 +1,17 @@
-import { IsString, IsIn } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUUID } from 'class-validator';
 
-export class UpdateTenantUserStatusDto {
+export class UpdateTenantUserDto {
+  @IsOptional()
+  @IsString()
+  @IsIn(['admin', 'gerente', 'representante'])
+  role?: string;
+
+  @IsOptional()
+  @IsUUID()
+  teamId?: string | null;
+
+  @IsOptional()
   @IsString()
   @IsIn(['active', 'inactive'])
-  status: string;
+  status?: string;
 }

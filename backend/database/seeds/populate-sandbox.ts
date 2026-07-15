@@ -32,6 +32,15 @@ async function populate() {
   const db = (sql: string, params?: any[]) => ds.query(sql, params);
   const hash = (pw: string) => bcrypt.hash(pw, 10);
 
+  // 0. TENANT
+  await db(
+    `INSERT INTO tenants (id, slug, name)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (id) DO UPDATE SET slug = $2, name = $3`,
+    [TENANT_ID, 'dnacare-sandbox', 'DNA Care Sandbox'],
+  );
+  console.log('  DNA Care Sandbox tenant');
+
   console.log('╔══════════════════════════════════════════╗');
   console.log('║  POPULATE SANDBOX — Dados Completos     ║');
   console.log('╚══════════════════════════════════════════╝\n');

@@ -6,8 +6,8 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
 interface Tenant {
-  id: string; slug: string; name: string; created_at: string;
-  asaasApiKey?: string; asaasSandbox?: boolean;
+  id: string; slug: string; name: string; createdAt: string;
+  asaasConfigured?: boolean; asaasSandbox?: boolean;
   asaasWebhookUrl?: string; asaasWebhookId?: string;
 }
 
@@ -51,7 +51,7 @@ export default function TenantsPage() {
   function openEdit(t: Tenant) { setEditing(t); setName(t.name); setSlug(t.slug); setMode('edit'); setError(''); }
   function openAsaas(t: Tenant) {
     setEditing(t);
-    setAsaasApiKey(t.asaasApiKey || '');
+    setAsaasApiKey('');
     setAsaasSandbox(t.asaasSandbox !== false);
     setWebhookUrl(t.asaasWebhookUrl || 'https://dnacare.wizerdigital.tec.br/api/webhooks/asaas');
     setWebhookResult(null);
@@ -139,7 +139,7 @@ export default function TenantsPage() {
                       <span className="inline-flex items-center gap-1 rounded-full border border-success/20 bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
                         <span className="h-1.5 w-1.5 rounded-full bg-success" /> Webhook ativo
                       </span>
-                    ) : t.asaasApiKey ? (
+                    ) : t.asaasConfigured ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
                         <span className="h-1.5 w-1.5 rounded-full bg-warning" /> Sem webhook
                       </span>
@@ -147,7 +147,7 @@ export default function TenantsPage() {
                       <span className="text-xs text-ink-muted">Não configurado</span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-ink-tertiary">{new Date(t.created_at).toLocaleDateString('pt-BR')}</td>
+                  <td className="px-5 py-3 text-ink-tertiary">{new Date(t.createdAt).toLocaleDateString('pt-BR')}</td>
                   {user?.is_platform_admin && (
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-1">
@@ -254,7 +254,8 @@ export default function TenantsPage() {
                 <div className="mt-4 rounded-lg border border-success/20 bg-success/5 p-4 space-y-1 text-sm">
                   <p className="font-medium text-success">Webhook registrado!</p>
                   <p className="text-ink-secondary">ID: <span className="font-mono text-xs">{webhookResult.webhookId}</span></p>
-                  <p className="text-ink-secondary">Token: <span className="font-mono text-xs text-ink-tertiary">{webhookResult.authToken}</span></p>
+                  <p className="text-ink-secondary">URL: <span className="font-mono text-xs text-ink-tertiary">{webhookResult.url}</span></p>
+                  <p className="text-ink-secondary">Token armazenado com segurança no servidor.</p>
                   <p className="text-ink-secondary">Eventos: <span className="text-xs">{webhookResult.events?.join(', ')}</span></p>
                 </div>
               )}

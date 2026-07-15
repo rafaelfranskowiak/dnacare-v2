@@ -96,9 +96,19 @@ export class OpportunityService {
   async setCheckoutGenerated(id: string, tenantId: string, asaasCustomerId: string): Promise<Opportunity> {
     const opp = await this.findById(id, tenantId);
     if (!opp) throw new NotFoundException('Oportunidade não encontrada');
+
+    if (opp.status === 'checkout_gerado') {
+      if (!opp.asaasCustomerId && asaasCustomerId) {
+        opp.asaasCustomerId = asaasCustomerId;
+        return this.oppRepo.save(opp);
+      }
+      return opp;
+    }
+
     if (!ALLOWED_OPPORTUNITY_TRANSITIONS[opp.status]?.includes('checkout_gerado')) {
       throw new BadRequestException('Status inválido para gerar checkout');
     }
+
     opp.status = 'checkout_gerado';
     opp.asaasCustomerId = asaasCustomerId;
     return this.oppRepo.save(opp);
@@ -107,14 +117,30 @@ export class OpportunityService {
   async convert(id: string, tenantId: string): Promise<Opportunity> {
     const opp = await this.findById(id, tenantId);
     if (!opp) throw new NotFoundException('Oportunidade não encontrada');
+
+    if (opp.status === 'convertida') {
+      return opp;
+    }
+
     if (!ALLOWED_OPPORTUNITY_TRANSITIONS[opp.status]?.includes('convertida')) {
       throw new BadRequestException('Status inválido para conversão');
     }
+
     opp.status = 'convertida';
     return this.oppRepo.save(opp);
   }
 
-  async getDependents(opportunityId: string): Promise<OpportunityDependent[]> {
+  async getDependents(
+    opportunityId: string,
+    tenantId?: string,
+  ): Promise<OpportunityDependent[]> {
+    if (tenantId) {
+      const opportunity = await this.findById(opportunityId, tenantId);
+      if (!opportunity) {
+        throw new NotFoundException('Oportunidade não encontrada');
+      }
+    }
+
     return this.depRepo.find({ where: { opportunityId } });
   }
 
@@ -133,7 +159,16 @@ export class OpportunityService {
     return this.depRepo.save(dep);
   }
 
-  async removeDependent(opportunityId: string, dependentId: string): Promise<void> {
+  async removeDependent(
+    opportunityId: string,
+    dependentId: string,
+    tenantId: string,
+  ): Promise<void> {
+    const opportunity = await this.findById(opportunityId, tenantId);
+    if (!opportunity) {
+      throw new NotFoundException('Oportunidade não encontrada');
+    }
+
     const dep = await this.depRepo.findOne({ where: { id: dependentId, opportunityId } });
     if (!dep) throw new NotFoundException('Dependente não encontrado');
     await this.depRepo.remove(dep);

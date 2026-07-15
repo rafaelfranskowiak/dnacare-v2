@@ -11,6 +11,11 @@ export class CreateTenantUserDto {
 
   @IsOptional()
   @IsString()
+  @IsIn(['admin', 'gerente', 'representante'])
+  role?: string;
+
+  @IsOptional()
+  @IsString()
   @IsIn(['active', 'inactive'])
   status?: string;
 }

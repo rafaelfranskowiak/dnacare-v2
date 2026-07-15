@@ -180,8 +180,10 @@ export default function OportunidadeDetailPage() {
                 className="block w-full rounded-lg border border-edge bg-surface-input px-3 py-2 text-sm text-ink">
                 <option value="">Selecione...</option>
                 <option value="BOLETO">Boleto</option>
-                <option value="CREDIT_CARD">Cartão de Crédito</option>
               </select>
+              <p className="mt-1 text-xs text-ink-tertiary">
+                Cartão de crédito será liberado após a conclusão do fluxo recorrente seguro.
+              </p>
             </div>
           </div>
         </div>

@@ -5,7 +5,9 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ClientService } from './client.service';
 import { SubscriptionService } from '../subscriptions/subscription.service';
-import { AsaasService } from '../asaas/asaas.service';
+import { AsaasService, AsaasTenantContext } from '../asaas/asaas.service';
+import { TenantService } from '../tenant/tenant.service';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Controller('clients')
 @UseGuards(JwtAuthGuard, TenantAccessGuard)
@@ -14,7 +16,21 @@ export class ClientController {
     private readonly clientService: ClientService,
     private readonly subService: SubscriptionService,
     private readonly asaasService: AsaasService,
+    private readonly tenantService: TenantService,
   ) {}
+
+  private async getAsaasContext(tenantId: string): Promise<AsaasTenantContext> {
+    const tenant = await this.tenantService.findByIdWithAsaasConfig(tenantId);
+    if (!tenant?.asaasApiKey) {
+      throw new BadRequestException('Configuração Asaas não concluída para esta unidade');
+    }
+
+    return {
+      tenantId: tenant.id,
+      apiKey: tenant.asaasApiKey,
+      sandbox: tenant.asaasSandbox,
+    };
+  }
 
   @Get()
   async list(@Request() req: any, @Query() query: any) {
@@ -49,7 +65,7 @@ export class ClientController {
   @Patch(':id')
   @Roles('admin', 'gerente', 'representante')
   @UseGuards(RolesGuard)
-  async update(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+  async update(@Request() req: any, @Param('id') id: string, @Body() body: UpdateClientDto) {
     return this.clientService.update(id, req.tenantId, body);
   }
 
@@ -69,7 +85,7 @@ export class ClientController {
 
     const subscription = await this.subService.findByClient(id, req.tenantId);
     if (subscription) {
-      await this.subService.setStatus(subscription.id, 'ativa');
+      await this.subService.setStatus(subscription.id, req.tenantId, 'ativa');
     }
 
     return {
@@ -82,54 +98,42 @@ export class ClientController {
   @Post(':id/settle-debts')
   @Roles('admin', 'gerente')
   @UseGuards(RolesGuard)
-  async settleDebts(@Request() req: any, @Param('id') id: string) {
-    const client = await this.clientService.findById(id, req.tenantId);
-    if (!client || client.type !== 'holder') return null;
-    if (!client.asaasCustomerId) throw new BadRequestException('Cliente sem cadastro na Asaas');
-
-    const paymentsResponse = await this.asaasService.getCustomerPayments(client.asaasCustomerId);
-    const payments = Array.isArray(paymentsResponse?.data) ? paymentsResponse.data : [];
-    const totalDue = payments.reduce((acc: number, payment: any) => {
-      const status = String(payment?.status || '').toUpperCase();
-      const value = Number(payment?.value || 0);
-
-      if (['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH', 'CANCELLED', 'REFUNDED'].includes(status)) {
-        return acc;
-      }
-
-      return acc + value;
-    }, 0);
-
-    if (totalDue <= 0) {
-      return { consolidatedValue: 0, settlementUrl: null, paymentId: null };
-    }
-
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 3);
-    const dueDateStr = dueDate.toISOString().split('T')[0];
-
-    const payment = await this.asaasService.createPayment({
-      customerId: client.asaasCustomerId,
-      billingType: 'BOLETO',
-      value: totalDue,
-      dueDate: dueDateStr,
-      description: `Quitação de débitos - ${client.name}`,
-      externalReference: client.id,
-    });
-
-    return {
-      consolidatedValue: totalDue,
-      settlementUrl: payment.bankSlipUrl || payment.invoiceUrl || payment.paymentUrl || null,
-      paymentId: payment.id,
-    };
+  async settleDebts() {
+    throw new BadRequestException(
+      'Quitação consolidada temporariamente indisponível: é necessário vincular e cancelar as cobranças originais antes de gerar um acordo.',
+    );
   }
 
   @Get(':id/financial')
   async financial(@Request() req: any, @Param('id') id: string) {
     const client = await this.clientService.findById(id, req.tenantId);
     if (!client || !client.asaasCustomerId) return { totalReceived: 0, totalDue: 0, payments: [] };
-    const result = await this.asaasService.getCustomerPayments(client.asaasCustomerId);
-    return { payments: result?.data || [], totalReceived: 0, totalDue: 0 };
+    const asaasContext = await this.getAsaasContext(req.tenantId);
+    const result = await this.asaasService.getCustomerPayments(
+      client.asaasCustomerId,
+      asaasContext,
+    );
+    const payments = Array.isArray(result?.data) ? result.data : [];
+    const receivedStatuses = new Set(['RECEIVED', 'CONFIRMED', 'RECEIVED_IN_CASH']);
+    const dueStatuses = new Set(['PENDING', 'OVERDUE', 'DUNNING_REQUESTED']);
+
+    const totals = payments.reduce(
+      (acc: { totalReceived: number; totalDue: number }, payment: any) => {
+        const status = String(payment?.status || '').toUpperCase();
+        const value = Number(payment?.value || 0);
+
+        if (receivedStatuses.has(status)) {
+          acc.totalReceived += value;
+        } else if (dueStatuses.has(status)) {
+          acc.totalDue += value;
+        }
+
+        return acc;
+      },
+      { totalReceived: 0, totalDue: 0 },
+    );
+
+    return { payments, ...totals };
   }
 
   @Post(':id/cancel-plan')
@@ -141,7 +145,10 @@ export class ClientController {
     const sub = await this.subService.findByClient(id, req.tenantId);
     let asaasError = null;
     if (sub?.asaasSubscriptionId) {
-      try { await this.asaasService.cancelSubscription(sub.asaasSubscriptionId); } catch (e) { asaasError = (e as any).message; await this.subService.setStatus(sub.id, 'cancelamento_pendente'); }
+      try {
+        const asaasContext = await this.getAsaasContext(req.tenantId);
+        await this.asaasService.cancelSubscription(sub.asaasSubscriptionId, asaasContext);
+      } catch (e) { asaasError = (e as any).message; await this.subService.setStatus(sub.id, req.tenantId, 'cancelamento_pendente'); }
     }
     await this.clientService.setStatus(id, req.tenantId, asaasError ? 'cancelamento_pendente' : 'inativo');
     const deps = await this.clientService.findDependents(id, req.tenantId);

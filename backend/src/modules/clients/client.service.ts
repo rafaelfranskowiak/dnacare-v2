@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from './client.entity';
 import { isValidDocument, normalizeDocument } from '../opportunities/document-normalizer';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientService {
@@ -17,6 +18,22 @@ export class ClientService {
     sellerId: string,
     asaasCustomerId: string,
   ): Promise<Client> {
+    const existing = await this.clientRepo.findOne({
+      where: {
+        tenantId,
+        opportunityId: opportunity.id,
+        type: 'holder',
+      },
+    });
+
+    if (existing) {
+      if (!existing.asaasCustomerId && asaasCustomerId) {
+        existing.asaasCustomerId = asaasCustomerId;
+        return this.clientRepo.save(existing);
+      }
+      return existing;
+    }
+
     const client = this.clientRepo.create({
       tenantId,
       opportunityId: opportunity.id,
@@ -48,6 +65,17 @@ export class ClientService {
     sellerId: string,
     depData: { name: string; document: string; documentNormalized: string },
   ): Promise<Client> {
+    const existing = await this.clientRepo.findOne({
+      where: { tenantId, documentNormalized: depData.documentNormalized },
+    });
+
+    if (existing) {
+      if (existing.type === 'dependent' && existing.holderId === holderId) {
+        return existing;
+      }
+      throw new BadRequestException('CPF/CNPJ já cadastrado nesta unidade');
+    }
+
     const client = this.clientRepo.create({
       tenantId,
       opportunityId,
@@ -134,10 +162,49 @@ export class ClientService {
     return this.clientRepo.find({ where: { holderId, tenantId } });
   }
 
-  async update(id: string, tenantId: string, data: Partial<Client>): Promise<Client> {
+  async update(id: string, tenantId: string, data: UpdateClientDto): Promise<Client> {
     const client = await this.findById(id, tenantId);
     if (!client) throw new NotFoundException('Cliente não encontrado');
-    Object.assign(client, data);
+
+    if (data.document !== undefined) {
+      const documentNormalized = normalizeDocument(data.document);
+      if (!isValidDocument(documentNormalized)) {
+        throw new BadRequestException('CPF/CNPJ inválido');
+      }
+
+      const existing = await this.clientRepo.findOne({
+        where: { tenantId, documentNormalized },
+      });
+
+      if (existing && existing.id !== client.id) {
+        throw new BadRequestException('CPF/CNPJ já cadastrado nesta unidade');
+      }
+
+      client.document = data.document;
+      client.documentNormalized = documentNormalized;
+    }
+
+    const editableFields: Array<keyof UpdateClientDto> = [
+      'name',
+      'phone',
+      'email',
+      'birthDate',
+      'postalCode',
+      'address',
+      'addressNumber',
+      'addressComplement',
+      'neighborhood',
+      'city',
+      'state',
+    ];
+
+    for (const field of editableFields) {
+      const value = data[field];
+      if (value !== undefined) {
+        (client as any)[field] = typeof value === 'string' ? value.trim() : value;
+      }
+    }
+
     return this.clientRepo.save(client);
   }
 

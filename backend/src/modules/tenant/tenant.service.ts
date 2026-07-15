@@ -10,8 +10,27 @@ export class TenantService {
     private readonly repo: Repository<Tenant>,
   ) {}
 
-  findAll(): Promise<Tenant[]> {
-    return this.repo.find({ order: { createdAt: 'DESC' } });
+  async findAll(): Promise<Array<Tenant & { asaasConfigured: boolean }>> {
+    const tenants = await this.repo
+      .createQueryBuilder('tenant')
+      .addSelect('tenant.asaasApiKey')
+      .orderBy('tenant.createdAt', 'DESC')
+      .getMany();
+
+    return tenants.map((tenant) => {
+      const { asaasApiKey, asaasWebhookAuthToken, ...safeTenant } = tenant;
+      return {
+        ...safeTenant,
+        asaasConfigured: Boolean(asaasApiKey),
+      } as Tenant & { asaasConfigured: boolean };
+    });
+  }
+
+  async findPublic(): Promise<Array<Pick<Tenant, 'id' | 'slug' | 'name'>>> {
+    return this.repo.find({
+      select: { id: true, slug: true, name: true },
+      order: { name: 'ASC' },
+    });
   }
 
   findById(id: string): Promise<Tenant | null> {
@@ -20,6 +39,14 @@ export class TenantService {
 
   findBySlug(slug: string): Promise<Tenant | null> {
     return this.repo.findOne({ where: { slug } });
+  }
+
+  findByIdWithAsaasConfig(id: string): Promise<Tenant | null> {
+    return this.repo
+      .createQueryBuilder('tenant')
+      .addSelect(['tenant.asaasApiKey', 'tenant.asaasWebhookAuthToken'])
+      .where('tenant.id = :id', { id })
+      .getOne();
   }
 
   create(data: Partial<Tenant>): Promise<Tenant> {
@@ -36,7 +63,10 @@ export class TenantService {
     await this.repo.delete(id);
   }
 
-  async updateAsaasConfig(id: string, data: { asaasApiKey?: string; asaasSandbox?: boolean; asaasWebhookUrl?: string }): Promise<Tenant | null> {
+  async updateAsaasConfig(
+    id: string,
+    data: { asaasApiKey?: string; asaasSandbox?: boolean; asaasWebhookUrl?: string },
+  ): Promise<Tenant | null> {
     const update: Partial<Tenant> = {};
     if (data.asaasApiKey !== undefined) update.asaasApiKey = data.asaasApiKey;
     if (data.asaasSandbox !== undefined) update.asaasSandbox = data.asaasSandbox;

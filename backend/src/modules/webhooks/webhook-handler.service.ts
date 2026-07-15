@@ -8,6 +8,7 @@ import { OpportunityService } from '../opportunities/opportunity.service';
 import { ClientService } from '../clients/client.service';
 import { SubscriptionService } from '../subscriptions/subscription.service';
 import { DocumentRegistryService } from '../opportunities/document-registry.service';
+import { AsaasTenantContext } from '../asaas/asaas.service';
 
 @Injectable()
 export class WebhookHandlerService {
@@ -24,21 +25,37 @@ export class WebhookHandlerService {
     private readonly saleRepo: Repository<Sale>,
   ) {}
 
-  async handleEvent(tenantId: string, eventId: string, eventType: string, payload: Record<string, any>): Promise<void> {
-    const { inserted } = await this.webhookEventService.insertIfNotExists(tenantId, eventId, eventType, payload);
-    if (!inserted) {
-      this.logger.log(`Duplicate webhook ignored: ${eventId} (${eventType})`);
+  async handleEvent(
+    tenantId: string,
+    eventId: string,
+    eventType: string,
+    payload: Record<string, any>,
+    asaasContext: AsaasTenantContext,
+  ): Promise<void> {
+    const { inserted, event } = await this.webhookEventService.insertIfNotExists(
+      tenantId,
+      eventId,
+      eventType,
+      payload,
+    );
+
+    if (!inserted && ['processed', 'processing'].includes(event.status)) {
+      this.logger.log(`Webhook duplicado ignorado: ${eventId} (${eventType})`);
       return;
     }
 
+    await this.webhookEventService.markProcessing(event.id);
+
     try {
       switch (eventType) {
-        case 'PAYMENT_RECEIVED':
         case 'PAYMENT_CONFIRMED':
-          await this.handlePaymentConfirmed(tenantId, payload);
+          await this.handlePaymentConfirmed(tenantId, payload, asaasContext);
+          break;
+        case 'PAYMENT_RECEIVED':
+          await this.handlePaymentReceived(payload);
           break;
         case 'PAYMENT_OVERDUE':
-          await this.handlePaymentOverdue(payload);
+          await this.handlePaymentOverdue(tenantId, payload);
           break;
         case 'PAYMENT_DELETED':
           await this.handlePaymentDeleted(tenantId, payload);
@@ -48,67 +65,171 @@ export class WebhookHandlerService {
           break;
         case 'SUBSCRIPTION_INACTIVATED':
         case 'SUBSCRIPTION_DELETED':
-          await this.handleSubscriptionInactivated(payload);
+          await this.handleSubscriptionInactivated(tenantId, payload);
           break;
+        default:
+          this.logger.debug(`Evento Asaas sem handler específico: ${eventType}`);
       }
+
+      await this.webhookEventService.markProcessed(event.id);
     } catch (err) {
-      this.logger.error(`Webhook processing error: ${eventType}`, err);
+      const message = err instanceof Error ? err.message : String(err);
+      await this.webhookEventService.markFailed(event.id, message);
+      this.logger.error(`Falha ao processar webhook ${eventType}: ${message}`);
+      throw err;
     }
   }
 
-  private async handlePaymentConfirmed(tenantId: string, payload: Record<string, any>): Promise<void> {
+  private async handlePaymentConfirmed(
+    tenantId: string,
+    payload: Record<string, any>,
+    asaasContext: AsaasTenantContext,
+  ): Promise<void> {
     const payment = payload.payment;
-    if (!payment) return;
+    if (!payment?.id) {
+      throw new Error('PAYMENT_CONFIRMED sem payment.id');
+    }
 
-    const asaasPaymentId = payment.id;
-    const asaasCustomerId = payment.customer;
+    const asaasPaymentId = String(payment.id);
+    const asaasCustomerId = String(payment.customer || '');
 
-    const sale = await this.saleService.findByAsaasPaymentId(asaasPaymentId);
-    if (!sale) { this.logger.warn(`Sale not found for payment: ${asaasPaymentId}`); return; }
+    const sale = await this.saleService.findByAsaasPaymentId(
+      asaasPaymentId,
+      tenantId,
+    );
+    if (!sale) {
+      throw new Error(`Venda não encontrada para o pagamento ${asaasPaymentId}`);
+    }
 
     await this.saleService.confirmSale(sale.id, tenantId);
 
-    const opportunity = await this.opportunityService.findById(sale.opportunityId, tenantId);
-    if (!opportunity) return;
+    const opportunity = await this.opportunityService.findById(
+      sale.opportunityId,
+      tenantId,
+    );
+    if (!opportunity) {
+      throw new Error(`Oportunidade não encontrada para a venda ${sale.id}`);
+    }
 
     await this.opportunityService.convert(opportunity.id, tenantId);
 
-    const holder = await this.clientService.createFromOpportunity(tenantId, opportunity, opportunity.sellerId, asaasCustomerId);
+    const holder = await this.clientService.createFromOpportunity(
+      tenantId,
+      opportunity,
+      opportunity.sellerId,
+      asaasCustomerId || sale.asaasCustomerId,
+    );
 
-    const dependents = await this.opportunityService.getDependents(opportunity.id);
+    const dependents = await this.opportunityService.getDependents(
+      opportunity.id,
+      tenantId,
+    );
+
     for (const dep of dependents) {
-      try { await this.documentRegistry.register(tenantId, dep.documentNormalized, 'client', dep.id); } catch {}
-      await this.clientService.createDependentFromOpportunity(tenantId, opportunity.id, holder.id, opportunity.sellerId, { name: dep.name, document: dep.document, documentNormalized: dep.documentNormalized });
+      const registry = await this.documentRegistry.checkExists(
+        tenantId,
+        dep.documentNormalized,
+      );
+
+      if (!registry) {
+        await this.documentRegistry.register(
+          tenantId,
+          dep.documentNormalized,
+          'client',
+          dep.id,
+        );
+      }
+
+      await this.clientService.createDependentFromOpportunity(
+        tenantId,
+        opportunity.id,
+        holder.id,
+        opportunity.sellerId,
+        {
+          name: dep.name,
+          document: dep.document,
+          documentNormalized: dep.documentNormalized,
+        },
+      );
     }
 
-    await this.subscriptionService.createFromSale(tenantId, holder.id, sale);
-    this.logger.log(`Payment confirmed: sale ${sale.id}, holder ${holder.id}`);
+    await this.subscriptionService.createFromSale(
+      tenantId,
+      holder.id,
+      sale,
+      asaasContext,
+      payment.dueDate,
+      payment.paymentDate || payment.clientPaymentDate,
+    );
+
+    this.logger.log(`Pagamento confirmado: venda ${sale.id}, titular ${holder.id}`);
   }
 
-  private async handlePaymentOverdue(payload: Record<string, any>): Promise<void> {
+  private async handlePaymentReceived(payload: Record<string, any>): Promise<void> {
+    const payment = payload.payment;
+    if (!payment?.id) {
+      throw new Error('PAYMENT_RECEIVED sem payment.id');
+    }
+
+    // O MVP ainda não possui um ledger local de recebimentos. Este evento
+    // não repete a conversão já disparada por PAYMENT_CONFIRMED.
+    this.logger.log(`Pagamento recebido no Asaas: ${payment.id}`);
+  }
+
+  private async handlePaymentOverdue(
+    tenantId: string,
+    payload: Record<string, any>,
+  ): Promise<void> {
     const payment = payload.payment;
     if (!payment?.subscription) return;
-    await this.subscriptionService.setStatusByAsaasId(payment.subscription, 'inadimplente');
+
+    await this.subscriptionService.setStatusByAsaasId(
+      payment.subscription,
+      tenantId,
+      'inadimplente',
+    );
   }
 
-  private async handlePaymentDeleted(tenantId: string, payload: Record<string, any>): Promise<void> {
+  private async handlePaymentDeleted(
+    tenantId: string,
+    payload: Record<string, any>,
+  ): Promise<void> {
     const payment = payload.payment;
-    if (!payment) return;
-    const sale = await this.saleService.findByAsaasPaymentId(payment.id);
-    if (sale && sale.status === 'pending_payment') {
-      await this.saleRepo.update(sale.id, { status: 'failed' });
+    if (!payment?.id) return;
+
+    const sale = await this.saleService.findByAsaasPaymentId(payment.id, tenantId);
+    if (sale?.status === 'pending_payment') {
+      await this.saleRepo.update(
+        { id: sale.id, tenantId },
+        { status: 'failed' },
+      );
     }
   }
 
-  private async handlePaymentRefunded(tenantId: string, payload: Record<string, any>): Promise<void> {
+  private async handlePaymentRefunded(
+    tenantId: string,
+    payload: Record<string, any>,
+  ): Promise<void> {
     const payment = payload.payment;
-    if (!payment) return;
-    await this.saleRepo.update({ asaasPaymentId: payment.id }, { status: 'refunded' });
+    if (!payment?.id) return;
+
+    await this.saleRepo.update(
+      { asaasPaymentId: payment.id, tenantId },
+      { status: 'refunded' },
+    );
   }
 
-  private async handleSubscriptionInactivated(payload: Record<string, any>): Promise<void> {
-    const sub = payload.subscription;
-    if (!sub) return;
-    await this.subscriptionService.setStatusByAsaasId(sub.id, 'inativa');
+  private async handleSubscriptionInactivated(
+    tenantId: string,
+    payload: Record<string, any>,
+  ): Promise<void> {
+    const subscription = payload.subscription;
+    if (!subscription?.id) return;
+
+    await this.subscriptionService.setStatusByAsaasId(
+      subscription.id,
+      tenantId,
+      'inativa',
+    );
   }
 }

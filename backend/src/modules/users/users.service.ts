@@ -17,6 +17,19 @@ export class UsersService {
     return this.repo.find({ order: { createdAt: 'DESC' } });
   }
 
+  findByTenant(tenantId: string): Promise<User[]> {
+    return this.repo
+      .createQueryBuilder('user')
+      .innerJoin(
+        'tenant_users',
+        'tenantUser',
+        'tenantUser.user_id = user.id AND tenantUser.tenant_id = :tenantId AND tenantUser.status = :status',
+        { tenantId, status: 'active' },
+      )
+      .orderBy('user.createdAt', 'DESC')
+      .getMany();
+  }
+
   findByEmail(email: string): Promise<User | null> {
     return this.repo.findOne({ where: { email } });
   }

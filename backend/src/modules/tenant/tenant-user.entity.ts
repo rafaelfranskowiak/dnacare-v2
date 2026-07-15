@@ -14,8 +14,8 @@ export class TenantUser {
   @Column({ name: 'role_id', nullable: true })
   roleId: string;
 
-  @Column({ name: 'team_id', nullable: true })
-  teamId: string;
+  @Column({ name: 'team_id', type: 'varchar', nullable: true })
+  teamId: string | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   role: string;

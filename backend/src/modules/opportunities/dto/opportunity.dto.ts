@@ -22,7 +22,7 @@ export class UpdateOpportunityDto {
   @IsOptional() @IsString() city?: string;
   @IsOptional() @IsString() state?: string;
   @IsOptional() @IsUUID() planVersionId?: string;
-  @IsOptional() @IsIn(['CREDIT_CARD', 'BOLETO']) paymentMethod?: string;
+  @IsOptional() @IsIn(['BOLETO']) paymentMethod?: string;
 }
 
 export class CancelOpportunityDto {
@@ -43,6 +43,6 @@ export class GenerateCheckoutDto {
   @IsUUID()
   planVersionId: string;
 
-  @IsIn(['CREDIT_CARD', 'BOLETO'])
+  @IsIn(['BOLETO'])
   paymentMethod: string;
 }

@@ -3,6 +3,35 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+function BrandMark() {
+  return (
+    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white shadow-sm">
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.25 10.5 12 4l7.75 6.5v8.25a1.25 1.25 0 0 1-1.25 1.25H5.5a1.25 1.25 0 0 1-1.25-1.25V10.5Z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 20v-5.25h6V20M8 10.5h.01M12 10.5h.01M16 10.5h.01" />
+      </svg>
+    </div>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5v10.5H3.75V6.75Z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 7.5 7.5 6 7.5-6" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
+      <rect width="13.5" height="11" x="5.25" y="10.25" rx="2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 10.25V7.5a3.75 3.75 0 1 1 7.5 0v2.75" />
+    </svg>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -27,7 +56,7 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.message || 'Email ou senha inválidos');
+        setError(body.message || 'E-mail ou senha inválidos.');
         return;
       }
 
@@ -36,76 +65,141 @@ export default function LoginPage() {
       if (data.tenantId) localStorage.setItem('tenantId', data.tenantId);
       router.push('/dashboard');
     } catch {
-      setError('Erro ao conectar com o servidor');
+      setError('Não foi possível conectar ao servidor. Tente novamente.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-surface-canvas via-surface-canvas to-brand/10 p-4 transition-colors duration-300 dark:from-slate-950 dark:via-slate-950 dark:to-brand/10">
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_left,rgba(5,150,105,0.10),transparent_55%)] dark:bg-[radial-gradient(ellipse_at_top_left,rgba(16,185,129,0.10),transparent_55%)]" />
-
-      <div className="relative w-full max-w-md">
-        <div className="rounded-2xl border border-edge bg-surface/95 px-8 py-10 shadow-sm backdrop-blur-sm transition-colors duration-300">
-          <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand-light shadow-sm">
-              <svg className="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-              </svg>
+    <main className="min-h-screen bg-surface-canvas">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-12">
+        <header className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BrandMark />
+            <div>
+              <p className="text-sm font-semibold tracking-tight text-ink">DNA Care</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-ink-muted">Operação</p>
             </div>
-            <h1 className="text-2xl font-bold text-ink">DNA Care</h1>
-            <p className="mt-1 text-sm text-ink-tertiary">Acesse sua conta</p>
           </div>
+          <span className="hidden items-center gap-2 text-xs text-ink-tertiary sm:flex">
+            <span className="h-1.5 w-1.5 rounded-full bg-success" />
+            Ambiente seguro
+          </span>
+        </header>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink-secondary">Email</label>
-              <input id="email" type="email" placeholder="seu@email.com" value={email}
-                onChange={(e) => setEmail(e.target.value)} required autoFocus
-                className="block w-full rounded-lg border border-edge bg-surface-input px-4 py-2.5 text-sm text-ink placeholder:text-ink-muted transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20" />
-            </div>
+        <div className="grid flex-1 items-center gap-12 py-12 lg:grid-cols-[minmax(0,1fr)_440px] lg:gap-24 lg:py-16">
+          <section className="hidden max-w-xl lg:block">
+            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.22em] text-brand">Painel da unidade</p>
+            <h1 className="max-w-lg text-5xl font-semibold leading-[1.08] tracking-[-0.04em] text-ink xl:text-6xl">
+              Clareza para cuidar da sua operação.
+            </h1>
+            <p className="mt-6 max-w-md text-base leading-7 text-ink-secondary">
+              Acompanhe oportunidades, vendas, clientes e cobranças em um só lugar — com a visão certa para cada decisão.
+            </p>
 
-            <div>
-              <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink-secondary">Senha</label>
-              <div className="relative">
-                <input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
-                  onChange={(e) => setPassword(e.target.value)} required
-                  className="block w-full rounded-lg border border-edge bg-surface-input px-4 py-2.5 pr-11 text-sm text-ink placeholder:text-ink-muted transition focus:border-brand/50 focus:outline-none focus:ring-2 focus:ring-brand/20" />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-ink-muted transition-colors hover:text-brand focus:outline-none"
-                  aria-label={showPassword ? "Esconder senha" : "Mostrar senha"}>
-                  {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                  )}
-                </button>
+            <div className="mt-12 grid max-w-md grid-cols-2 gap-x-8 gap-y-6 border-t border-edge pt-6">
+              <div>
+                <p className="text-sm font-medium text-ink">Vendas em um só fluxo</p>
+                <p className="mt-1 text-xs leading-5 text-ink-tertiary">Do primeiro contato à assinatura ativa.</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-ink">Dados da sua unidade</p>
+                <p className="mt-1 text-xs leading-5 text-ink-tertiary">Contexto separado, acesso controlado.</p>
               </div>
             </div>
+          </section>
 
-            {error && (
-              <div className="rounded-lg border border-danger/20 bg-danger/10 px-4 py-3">
-                <p className="text-sm text-danger">{error}</p>
+          <section className="w-full rounded-2xl border border-edge bg-surface p-6 shadow-sm sm:p-8">
+            <div className="mb-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Bem-vindo de volta</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink">Entrar no painel</h2>
+              <p className="mt-2 text-sm leading-6 text-ink-tertiary">Use as credenciais da sua unidade para continuar.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="mb-2 block text-sm font-medium text-ink">E-mail</label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted"><MailIcon /></span>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="voce@empresa.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                    autoComplete="email"
+                    className="block w-full rounded-lg border border-edge bg-surface-input py-3 pl-10 pr-4 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
+                  />
+                </div>
               </div>
-            )}
 
-            <button type="submit" disabled={loading}
-              className="flex w-full items-center justify-center rounded-lg bg-gradient-to-r from-brand to-brand-light px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-brand-dark hover:to-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:opacity-60">
-              {loading ? (
-                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-              ) : 'Entrar'}
-            </button>
-          </form>
+              <div>
+                <div className="mb-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-ink">Senha</label>
+                </div>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted"><LockIcon /></span>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Digite sua senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="block w-full rounded-lg border border-edge bg-surface-input py-3 pl-10 pr-11 text-sm text-ink outline-none transition placeholder:text-ink-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2.5 top-1/2 rounded-md p-1.5 text-ink-muted transition hover:bg-surface hover:text-ink focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
+                      {showPassword ? <><path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.58 10.58a2 2 0 0 0 2.83 2.83M9.88 5.08A10.7 10.7 0 0 1 12 4.87c5.5 0 9 7.13 9 7.13a15.5 15.5 0 0 1-2.17 2.93M6.61 6.61C3.79 8.38 3 12 3 12s3.5 7.13 9 7.13a9.8 9.8 0 0 0 3.39-.61" /></> : <><path strokeLinecap="round" strokeLinejoin="round" d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.5" /></>}
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div role="alert" className="rounded-lg border border-danger/20 bg-danger/10 px-3.5 py-3 text-sm text-danger">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark focus:outline-none focus:ring-4 focus:ring-brand/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? (
+                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-label="Entrando">
+                    <circle className="opacity-30" cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" />
+                    <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                  </svg>
+                ) : <>Entrar <span aria-hidden="true">→</span></>}
+              </button>
+            </form>
+
+            <div className="mt-7 flex items-start gap-2.5 border-t border-edge-soft pt-5 text-xs leading-5 text-ink-tertiary">
+              <svg className="mt-0.5 h-4 w-4 shrink-0 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75 19 6v5.25c0 4.5-2.92 7.8-7 9-4.08-1.2-7-4.5-7-9V6l7-2.25Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="m9.25 12 1.75 1.75 3.75-4" />
+              </svg>
+              <span>Seu acesso é protegido e limitado aos dados da sua unidade.</span>
+            </div>
+          </section>
         </div>
 
-        <p className="mt-6 text-center text-xs text-ink-muted">
-          &copy; {new Date().getFullYear()} DNA Care. Todos os direitos reservados.
-        </p>
+        <footer className="flex flex-col gap-2 border-t border-edge-soft py-5 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} DNA Care</span>
+          <span>Gestão de assinaturas e relacionamento</span>
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }
