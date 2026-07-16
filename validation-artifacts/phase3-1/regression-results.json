@@ -1,0 +1,90 @@
+{
+  "generatedAt": "2026-07-16T12:29:34.863Z",
+  "port": "4017",
+  "results": [
+    {
+      "id": "REG-01",
+      "status": "PASSOU",
+      "http": 201,
+      "expected": 201,
+      "detail": "login administrador"
+    },
+    {
+      "id": "REG-02",
+      "status": "PASSOU",
+      "http": 201,
+      "expected": 201,
+      "detail": "login representante"
+    },
+    {
+      "id": "REG-03",
+      "status": "PASSOU",
+      "http": 200,
+      "expected": 200,
+      "detail": "acesso ao próprio tenant"
+    },
+    {
+      "id": "REG-04",
+      "status": "PASSOU",
+      "http": 403,
+      "expected": 403,
+      "detail": "representante sem administração global"
+    },
+    {
+      "id": "REG-05",
+      "status": "PASSOU",
+      "http": 403,
+      "expected": 403,
+      "detail": "acesso cross-tenant sem vínculo"
+    },
+    {
+      "id": "REG-06",
+      "status": "PASSOU",
+      "http": 401,
+      "expected": 401,
+      "detail": "webhook sem token"
+    },
+    {
+      "id": "REG-07",
+      "status": "PASSOU",
+      "http": [
+        200,
+        200
+      ],
+      "expected": [
+        200,
+        200
+      ],
+      "dbCount": 1,
+      "detail": "webhook duplicado"
+    },
+    {
+      "id": "REG-08",
+      "status": "PASSOU",
+      "http": 400,
+      "expected": 400,
+      "detail": "CREDIT_CARD rejeitado"
+    },
+    {
+      "id": "REG-09",
+      "status": "PASSOU",
+      "http": 400,
+      "expected": 400,
+      "salesBefore": 4,
+      "salesAfter": 4,
+      "detail": "checkout sem Asaas não cria venda"
+    },
+    {
+      "id": "REG-10",
+      "status": "PASSOU",
+      "http": 400,
+      "expected": 400,
+      "detail": "quitação consolidada bloqueada"
+    },
+    {
+      "id": "REG-11",
+      "status": "BLOQUEADO",
+      "detail": "E2E Asaas requer chave Sandbox válida; migração pendente bloqueia os cenários dependentes das novas colunas"
+    }
+  ]
+}

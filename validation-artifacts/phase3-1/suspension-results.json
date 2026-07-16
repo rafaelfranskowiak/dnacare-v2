@@ -1,0 +1,7 @@
+{
+  "generatedAt": "2026-07-16T12:29:59.411Z",
+  "status": "BLOQUEADO",
+  "reason": "migração pendente: subscriptions.billing_cycle/next_due_date ausentes",
+  "http": 500,
+  "localStateUnchanged": true
+}

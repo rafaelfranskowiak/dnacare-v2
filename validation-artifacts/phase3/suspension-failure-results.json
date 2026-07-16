@@ -1,0 +1,29 @@
+[
+  {
+    "id": "SUSP-01",
+    "status": "FALHOU",
+    "http": 500,
+    "expected": 201,
+    "db": {
+      "client_status": "ativo",
+      "subscription_status": "ativa"
+    },
+    "detail": "external cancellation unavailable leaves pending state"
+  },
+  {
+    "id": "SUSP-02",
+    "status": "FALHOU",
+    "http": 500,
+    "expected": "error without local activation",
+    "db": {
+      "client_status": "ativo",
+      "subscription_status": "ativa"
+    },
+    "detail": "reactivation does not activate without external configuration"
+  },
+  {
+    "id": "SUSP-03",
+    "status": "BLOQUEADO",
+    "detail": "valid Sandbox key and real Asaas PUT status transitions were not available"
+  }
+]

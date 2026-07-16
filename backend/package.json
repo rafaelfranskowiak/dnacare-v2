@@ -13,12 +13,14 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
     "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d src/database/datasource.ts",
+    "migration:show": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:show -d src/database/datasource.ts",
     "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:revert -d src/database/datasource.ts",
     "migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/database/datasource.ts",
     "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:create",
     "seed": "ts-node database/seeds/seed.ts",
     "seed:revert": "ts-node database/seeds/revert.ts",
-    "seed:sandbox": "ts-node database/seeds/populate-sandbox.ts"
+    "seed:sandbox": "ts-node database/seeds/populate-sandbox.ts",
+    "repair:tenant-users": "ts-node database/scripts/repair-tenant-user-duplicates.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",

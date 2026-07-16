@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-07-16T12:26:21.606Z",
+  "migrationPrerequisite": "not applied",
+  "tests": [
+    {
+      "name": "tenant_users_duplicate",
+      "expected": "rejected",
+      "result": "allowed",
+      "passed": false
+    },
+    {
+      "name": "sales_duplicate",
+      "expected": "rejected",
+      "result": "allowed",
+      "passed": false
+    },
+    {
+      "name": "holder_duplicate",
+      "expected": "rejected",
+      "result": "rejected",
+      "error": {
+        "code": "23505",
+        "message": "duplicate key value violates unique constraint \"IDX_ed00c8b73123d3068a7fa75f46\""
+      },
+      "passed": true
+    },
+    {
+      "name": "subscription_duplicate",
+      "expected": "rejected",
+      "result": "rejected",
+      "error": {
+        "code": "23505",
+        "message": "duplicate key value violates unique constraint \"IDX_94158192bcd77997010d7763b4\""
+      },
+      "passed": true
+    },
+    {
+      "name": "dependent_distinct_allowed",
+      "expected": "allowed",
+      "result": "allowed",
+      "passed": true
+    }
+  ],
+  "passed": false
+}

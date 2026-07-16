@@ -1,0 +1,244 @@
+{
+  "generatedAt": "2026-07-16T12:30:20.425Z",
+  "database": {
+    "database": "dnacarev2",
+    "username": "wizerdigital",
+    "version": "PostgreSQL 16.14 (Debian 16.14-1.pgdg12+1) on x86_64-pc-linux-gnu"
+  },
+  "counts": {
+    "tenants": 2,
+    "users": 6,
+    "tenant_users": 4,
+    "teams": 2,
+    "plans": 3,
+    "plan_versions": 8,
+    "opportunities": 6,
+    "opportunity_dependents": 4,
+    "sales": 4,
+    "clients": 6,
+    "subscriptions": 4,
+    "webhook_events": 0
+  },
+  "duplicates": {
+    "tenantUsers": {
+      "groupCount": 0,
+      "groups": []
+    },
+    "sales": {
+      "groupCount": 0,
+      "groups": []
+    },
+    "holderClients": {
+      "groupCount": 0,
+      "groups": []
+    },
+    "subscriptions": {
+      "groupCount": 0,
+      "groups": []
+    },
+    "planVersions": {
+      "groupCount": 3,
+      "groups": [
+        {
+          "keyHash": "e18a00f055c1",
+          "count": 2,
+          "distinctSignatures": null
+        },
+        {
+          "keyHash": "8d05dcbcbb77",
+          "count": 2,
+          "distinctSignatures": null
+        },
+        {
+          "keyHash": "7f4b76117a79",
+          "count": 2,
+          "distinctSignatures": null
+        }
+      ]
+    },
+    "dependents": {
+      "groupCount": 2,
+      "groups": [
+        {
+          "keyHash": "d8ca11c6641f",
+          "count": 2,
+          "distinctSignatures": null
+        },
+        {
+          "keyHash": "a1484df06ec7",
+          "count": 2,
+          "distinctSignatures": null
+        }
+      ]
+    }
+  },
+  "schema": {
+    "columns": [
+      {
+        "table_name": "subscriptions",
+        "column_name": "id",
+        "data_type": "uuid"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "tenant_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "client_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "sale_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "plan_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "plan_version_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "plan_name",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "recurring_value",
+        "data_type": "numeric"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "dependent_rule",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "dependent_count",
+        "data_type": "integer"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "start_date",
+        "data_type": "date"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "cancel_reason",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "cancelled_by_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "cancelled_at",
+        "data_type": "timestamp with time zone"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "asaas_subscription_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "table_name": "subscriptions",
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "id",
+        "data_type": "uuid"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "tenant_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "user_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "role_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "team_id",
+        "data_type": "character varying"
+      },
+      {
+        "table_name": "tenant_users",
+        "column_name": "role",
+        "data_type": "character varying"
+      }
+    ],
+    "requiredIndexes": [],
+    "migrations": [
+      {
+        "name": "AddClientAuthAccount1779104688096",
+        "timestamp": "1779104688096"
+      },
+      {
+        "name": "AddCoreEntities1779103926642",
+        "timestamp": "1779103926642"
+      },
+      {
+        "name": "AddPlans1779073991009",
+        "timestamp": "1779073991009"
+      },
+      {
+        "name": "AddTeamsAndRoles1779073607571",
+        "timestamp": "1779073607571"
+      },
+      {
+        "name": "AddFoundationalEntities1779073244798",
+        "timestamp": "1779073244798"
+      }
+    ]
+  },
+  "recurrence": {
+    "divergent": 1,
+    "absolute_delta": "99.90",
+    "sales_with_admission_fee": 1,
+    "recurring_includes_admission_fee": 1,
+    "subscriptions": 4
+  }
+}

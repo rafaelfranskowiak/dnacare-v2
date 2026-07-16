@@ -12,8 +12,12 @@ export class HardenMvpConstraintsAndSubscriptions1784149200000
   ): Promise<void> {
     const rows = await queryRunner.query(sql);
     if (rows.length > 0) {
+      const repairHint =
+        label === 'tenant_users(tenant_id, user_id)'
+          ? ' Execute `npm run repair:tenant-users` para auditar e aplique somente duplicidades semanticamente idênticas.'
+          : '';
       throw new Error(
-        `Migration blocked: duplicate records found for ${label}. Resolve duplicates before rerunning.`,
+        `Migration blocked: duplicate records found for ${label}. Resolve duplicates before rerunning.${repairHint}`,
       );
     }
   }
@@ -69,34 +73,34 @@ export class HardenMvpConstraintsAndSubscriptions1784149200000
     );
 
     await queryRunner.query(`
-      CREATE UNIQUE INDEX "UQ_tenant_users_tenant_user"
+      CREATE UNIQUE INDEX IF NOT EXISTS "UQ_tenant_users_tenant_user"
       ON "tenant_users" ("tenant_id", "user_id")
     `);
 
     await queryRunner.query(`
-      CREATE UNIQUE INDEX "UQ_sales_tenant_opportunity"
+      CREATE UNIQUE INDEX IF NOT EXISTS "UQ_sales_tenant_opportunity"
       ON "sales" ("tenant_id", "opportunity_id")
     `);
 
     await queryRunner.query(`
-      CREATE UNIQUE INDEX "UQ_clients_holder_tenant_opportunity"
+      CREATE UNIQUE INDEX IF NOT EXISTS "UQ_clients_holder_tenant_opportunity"
       ON "clients" ("tenant_id", "opportunity_id")
       WHERE "type" = 'holder'
     `);
 
     await queryRunner.query(`
-      CREATE UNIQUE INDEX "UQ_subscriptions_tenant_sale"
+      CREATE UNIQUE INDEX IF NOT EXISTS "UQ_subscriptions_tenant_sale"
       ON "subscriptions" ("tenant_id", "sale_id")
     `);
 
     await queryRunner.query(`
       ALTER TABLE "subscriptions"
-      ADD "billing_cycle" character varying(20) NOT NULL DEFAULT 'MONTHLY'
+      ADD COLUMN IF NOT EXISTS "billing_cycle" character varying(20) NOT NULL DEFAULT 'MONTHLY'
     `);
 
     await queryRunner.query(`
       ALTER TABLE "subscriptions"
-      ADD "next_due_date" date
+      ADD COLUMN IF NOT EXISTS "next_due_date" date
     `);
 
     await queryRunner.query(`
@@ -130,22 +134,22 @@ export class HardenMvpConstraintsAndSubscriptions1784149200000
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE "subscriptions" DROP COLUMN "next_due_date"
+      ALTER TABLE "subscriptions" DROP COLUMN IF EXISTS "next_due_date"
     `);
     await queryRunner.query(`
-      ALTER TABLE "subscriptions" DROP COLUMN "billing_cycle"
+      ALTER TABLE "subscriptions" DROP COLUMN IF EXISTS "billing_cycle"
     `);
     await queryRunner.query(`
-      DROP INDEX "UQ_subscriptions_tenant_sale"
+      DROP INDEX IF EXISTS "UQ_subscriptions_tenant_sale"
     `);
     await queryRunner.query(`
-      DROP INDEX "UQ_clients_holder_tenant_opportunity"
+      DROP INDEX IF EXISTS "UQ_clients_holder_tenant_opportunity"
     `);
     await queryRunner.query(`
-      DROP INDEX "UQ_sales_tenant_opportunity"
+      DROP INDEX IF EXISTS "UQ_sales_tenant_opportunity"
     `);
     await queryRunner.query(`
-      DROP INDEX "UQ_tenant_users_tenant_user"
+      DROP INDEX IF EXISTS "UQ_tenant_users_tenant_user"
     `);
   }
 }

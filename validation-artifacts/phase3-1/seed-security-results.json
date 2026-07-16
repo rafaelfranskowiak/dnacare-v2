@@ -1,0 +1,20 @@
+{
+  "noKey": {
+    "status": "PASSOU",
+    "exitCode": 1,
+    "message": "ASAAS_SANDBOX_API_KEY ausente; seed interrompido antes de acessar ou alterar o banco"
+  },
+  "productionBaseUrlWithDummyKey": {
+    "status": "PASSOU",
+    "exitCode": 1,
+    "message": "URL não oficial bloqueada antes de inicializar o banco ou realizar chamada externa"
+  },
+  "populatedDatabaseWithoutExplicitAllow": {
+    "status": "BLOQUEADO",
+    "reason": "Não havia chave Sandbox válida configurada; o roteiro proíbe simular aprovação com chave fictícia"
+  },
+  "sandboxSeedIdempotency": {
+    "status": "BLOQUEADO",
+    "reason": "Não havia chave Sandbox válida nem autorização operacional para reexecução"
+  }
+}

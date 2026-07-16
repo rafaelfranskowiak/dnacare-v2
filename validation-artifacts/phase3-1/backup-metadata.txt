@@ -1,0 +1,9 @@
+scope=local PostgreSQL only
+database=dnacarev2
+format=pg_dump custom (-Fc)
+container=infra_base_postgres.1.u1jte3l5qsr98rltsgi6vb3r0
+path_outside_repository=/tmp/dnacarev2-phase3-1-backup-20260716.dump
+size_bytes=34259
+created_at_local=2026-07-16 09:22:07 -0300
+command_shape=docker exec <local-postgres> pg_dump -U <sandbox-db-user> -d dnacarev2 -Fc -f <backup-path>
+secrets=not recorded

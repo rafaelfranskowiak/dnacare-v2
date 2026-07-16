@@ -1,0 +1,14 @@
+{
+  "migrationShowBefore": "HardenMvpConstraintsAndSubscriptions1784149200000 pending",
+  "migrationRun": {
+    "status": "FALHOU",
+    "exitCode": 1,
+    "sqlState": "42883",
+    "message": "operator does not exist: uuid = character varying",
+    "reproduction": "UPDATE subscriptions AS subscription FROM sales AS sale WHERE sale.id = subscription.sale_id AND sale.tenant_id = subscription.tenant_id"
+  },
+  "transaction": "ROLLBACK confirmado pelo TypeORM",
+  "migrationShowAfter": "HardenMvpConstraintsAndSubscriptions1784149200000 pending",
+  "requiredIndexesAfterRollback": [],
+  "requiredSubscriptionColumnsAfterRollback": ["billing_cycle ausente", "next_due_date ausente"]
+}

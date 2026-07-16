@@ -1,0 +1,85 @@
+[
+  {
+    "id": "REG-01",
+    "status": "PASSOU",
+    "http": 201,
+    "expected": 201,
+    "detail": "login admin"
+  },
+  {
+    "id": "REG-02",
+    "status": "PASSOU",
+    "http": 201,
+    "expected": 201,
+    "detail": "login representante"
+  },
+  {
+    "id": "REG-03",
+    "status": "PASSOU",
+    "http": 200,
+    "expected": 200,
+    "detail": "admin own tenant"
+  },
+  {
+    "id": "REG-04",
+    "status": "PASSOU",
+    "http": 403,
+    "expected": 403,
+    "detail": "representante global admin"
+  },
+  {
+    "id": "REG-05",
+    "status": "PASSOU",
+    "http": 403,
+    "expected": 403,
+    "detail": "cross tenant without active link"
+  },
+  {
+    "id": "REG-06",
+    "status": "PASSOU",
+    "http": 401,
+    "expected": 401,
+    "detail": "invalid webhook token"
+  },
+  {
+    "id": "REG-07",
+    "status": "PASSOU",
+    "http": [
+      200,
+      200
+    ],
+    "expected": [
+      200,
+      200
+    ],
+    "dbCount": 1
+  },
+  {
+    "id": "REG-08",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "credit card rejected"
+  },
+  {
+    "id": "REG-09",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "checkout without tenant Asaas config",
+    "salesBefore": 4,
+    "salesAfter": 4
+  },
+  {
+    "id": "REG-10",
+    "status": "PASSOU",
+    "http": 400,
+    "expected": 400,
+    "detail": "consolidated settlement blocked"
+  },
+  {
+    "id": "REG-11",
+    "status": "BLOQUEADO",
+    "detail": "new constraint tests require successful migration; Asaas E2E requires valid Sandbox tenant key"
+  }
+]

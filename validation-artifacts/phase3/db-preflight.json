@@ -1,0 +1,39 @@
+{
+  "tenant_users": {
+    "rows": 4,
+    "duplicateGroups": [
+      {
+        "count": 2
+      },
+      {
+        "count": 2
+      },
+      {
+        "count": 2
+      },
+      {
+        "count": 2
+      }
+    ]
+  },
+  "sales": {
+    "rows": 0,
+    "duplicateGroups": []
+  },
+  "clients_holders": {
+    "rows": 0,
+    "duplicateGroups": []
+  },
+  "subscriptions": {
+    "rows": 0,
+    "duplicateGroups": []
+  },
+  "newIndexes": [],
+  "subscriptionColumns": [],
+  "recurring": {
+    "subscriptions": 4,
+    "divergences": 1,
+    "absolute_delta": "99.90"
+  },
+  "lastMigration": "AddClientAuthAccount1779104688096"
+}

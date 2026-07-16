@@ -1,0 +1,16 @@
+{
+  "literalAsaasKeyPattern": "NOT_FOUND",
+  "requiresEnvAsaasSandboxApiKey": true,
+  "seedWithoutKey": {
+    "exitCode": 0,
+    "result": "FALHOU",
+    "expected": "explicit failure before any external call",
+    "observed": "seed completed because existing records skipped the external helper"
+  },
+  "productionBaseUrlRuntimeRejection": {
+    "result": "BLOQUEADO",
+    "reason": "not executed against production URL; static guard exists but seed has no preflight guard"
+  },
+  "externalCallObserved": false,
+  "databaseSafetyNote": "The no-key seed run was not repeated. It inserted duplicate tenant_users rows because the pre-migration uniqueness index was absent. No automatic cleanup was performed."
+}

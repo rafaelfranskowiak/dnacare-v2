@@ -71,10 +71,12 @@
   - CPF/CNPJ alterado é normalizado, validado e verificado contra duplicidade local.
   - O ciclo completo do registro global de documentos continua acompanhado em `DOC-002`.
 
-- [x] **SEC-009 — Remover credencial Asaas hard-coded do seed**
+- [~] **SEC-009 — Remover credencial Asaas hard-coded e endurecer o seed**
   - A chave Sandbox foi removida de `populate-sandbox.ts`.
-  - O seed exige `ASAAS_SANDBOX_API_KEY` e bloqueia explicitamente a URL de produção.
+  - O relatório da Fase 3 comprovou que a validação antiga ocorria tarde demais: em banco já populado, o seed podia alterar dados sem possuir `ASAAS_SANDBOX_API_KEY`.
+  - A Fase 3.1 moveu o preflight de chave e URL para antes da inicialização do banco e aceita exclusivamente a URL oficial do Sandbox.
   - A credencial anteriormente exposta deve ser rotacionada no painel Asaas.
+  - Falta repetir a validação local e comprovar zero mutações sem chave ou com URL inválida.
   - Arquivos:
     - `backend/database/seeds/populate-sandbox.ts`
     - `backend/.env.example`
@@ -348,15 +350,33 @@
   - Arquivo: `backend/src/modules/tenant/tenant-user.entity.ts`
   - Verificado no PostgreSQL local e no startup do NestJS em porta livre, conforme `VALIDATION_REPORT.md`.
 
-- [~] **DB-001 — Migrations de constraints**
+- [!] **DB-001 — Migrations de constraints**
   - Criada migration explícita para:
     - `tenant_users(tenant_id, user_id)`;
     - `sales(tenant_id, opportunity_id)`;
     - titular em `clients(tenant_id, opportunity_id)`;
     - `subscriptions(tenant_id, sale_id)`.
-  - A migration bloqueia a execução com mensagem clara quando encontra duplicidades.
-  - Ainda falta executar e validar a migration no PostgreSQL local.
-  - Arquivo: `backend/database/migrations/1784149200000-HardenMvpConstraintsAndSubscriptions.ts`
+  - A validação da Fase 3 encontrou quatro grupos duplicados em `tenant_users`, criados pela reexecução insegura do seed; a migration executou rollback e permanece pendente.
+  - A Fase 3.1 adicionou auditoria/reparo conservador que remove somente duplicidades semanticamente idênticas e recusa conflitos de papel, time ou status.
+  - Após o reparo local, executar `npm run migration:run` e validar índices, colunas e valor recorrente.
+  - Arquivos:
+    - `backend/database/scripts/repair-tenant-user-duplicates.ts`
+    - `backend/database/migrations/1784149200000-HardenMvpConstraintsAndSubscriptions.ts`
+
+- [~] **SEED-001 — Preflight obrigatório antes de qualquer mutação**
+  - Fase 3.1 valida `ASAAS_SANDBOX_API_KEY` e a URL oficial do Sandbox antes de inicializar o DataSource.
+  - Falta comprovar localmente que ausência de chave e URL de produção deixam o banco inalterado.
+
+- [~] **SEED-002 — Bloquear reexecução acidental em banco populado**
+  - O seed detecta dados existentes do tenant e exige `ALLOW_POPULATED_SANDBOX_SEED=true`.
+  - A variável deve ser usada somente após backup e decisão explícita.
+  - Falta validação local.
+
+- [~] **SEED-003 — Reexecução idempotente**
+  - Vínculos em `tenant_users` agora usam `WHERE NOT EXISTS`.
+  - Versões de plano e dependentes de oportunidade reutilizam registros existentes ou IDs estáveis.
+  - A validação seguinte deve auditar resíduos anteriores em `plan_versions(plan_id, version)` e `opportunity_dependents(opportunity_id, document_normalized)`.
+  - Falta repetir o seed em Sandbox controlado e comprovar que as contagens não aumentam.
 
 - [ ] **OPS-001 — Health check e logs**
   - Health do banco.
@@ -448,3 +468,17 @@ Executar inicialmente apenas com tenants de teste e chaves do Sandbox.
 6. Corrigir o build de produção do frontend.
 7. Implementar testes unitários, integração e E2E Sandbox.
 8. Revisar dependências vulneráveis e preparar a liberação.
+
+
+## 12. Fase 3.1 — resposta ao relatório local
+
+- Relatório analisado: `VALIDATION_PHASE3_REPORT.md`.
+- Resultado recebido: reprovado para produção, com autenticação, isolamento e regressões principais aprovados.
+- Causa-raiz atual: seed mutava banco antes do preflight, gerou quatro grupos duplicados e bloqueou a migration.
+- Próxima evidência obrigatória: `VALIDATION_PHASE3_1_REPORT.md` com reparo, migration, constraints e zero divergência recorrente.
+
+### Registro adicional
+
+| Data | Lote | Alterações | Verificação |
+|---|---|---|---|
+| 15/07/2026 | Fase 3.1 — saneamento do seed e desbloqueio da migration | Preflight antes do banco, bloqueio de banco populado, idempotência do seed, script conservador para duplicidades e `migration:show` | Código preparado; validação local pendente conforme `PROMPT_VALIDACAO_FASE3_1.md`. |

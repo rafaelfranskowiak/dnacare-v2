@@ -1,0 +1,20 @@
+Read-only / validation commands executed (values and secrets omitted):
+
+cd backend
+npm run seed:sandbox                         # sem ASAAS_SANDBOX_API_KEY; exit 1
+npm run seed:sandbox                         # dummy key + https://api.asaas.com; exit 1
+npm run repair:tenant-users                  # audit-only; 4 equivalent groups
+npm run repair:tenant-users -- --apply --confirm=DELETE_EXACT_DUPLICATES
+npm run migration:show                       # migration pending
+npm run migration:run                        # exit 1; SQLSTATE 42883; rollback
+npm run migration:show                       # migration still pending
+npm run typecheck                             # PASSOU
+npm run lint                                  # BLOQUEADO: eslint não instalado em backend/node_modules
+
+Database evidence:
+node validation-artifacts/phase3-1/preflight.js
+node validation-artifacts/phase3-1/constraint-tests.js
+node validation-artifacts/phase3-1/regression.js
+node validation-artifacts/phase3-1/suspension-test.js
+
+HTTP server was local only (127.0.0.1:4017) and was stopped after validation.

@@ -1,0 +1,38 @@
+{
+  "tenant_users": [
+    {
+      "keyHash": "df52ee64b751",
+      "count": 2
+    },
+    {
+      "keyHash": "f36153fe90f5",
+      "count": 2
+    },
+    {
+      "keyHash": "7415de27e67d",
+      "count": 2
+    },
+    {
+      "keyHash": "7938ddd9d4be",
+      "count": 2
+    }
+  ],
+  "sales": [],
+  "clients_holders": [],
+  "subscriptions": [],
+  "lastMigrations": [
+    {
+      "name": "AddClientAuthAccount1779104688096"
+    },
+    {
+      "name": "AddCoreEntities1779103926642"
+    }
+  ],
+  "newIndexes": [
+    "UQ_253d25dae4c94ee913bc5ec4850",
+    "UQ_tenants_slug",
+    "UQ_users_email",
+    "UQ_webhook_events_asaaas_event_id"
+  ],
+  "subscriptionColumns": []
+}

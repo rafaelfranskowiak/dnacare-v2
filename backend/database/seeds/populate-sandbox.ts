@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { AppDataSource } from '../../src/database/datasource';
 import { calculatePricing, PricingInput } from '../../src/modules/plans/pricing-engine';
 import { normalizeDocument } from '../../src/modules/opportunities/document-normalizer';
@@ -10,28 +10,57 @@ const ASAAS_API_KEY = process.env.ASAAS_SANDBOX_API_KEY?.trim();
 const ASAAS_BASE = (
   process.env.ASAAS_SANDBOX_BASE_URL?.trim() || 'https://api-sandbox.asaas.com'
 ).replace(/\/+$/, '');
+const ALLOW_POPULATED_SANDBOX_SEED =
+  process.env.ALLOW_POPULATED_SANDBOX_SEED?.trim().toLowerCase() === 'true';
+
+function stableUuid(input: string): string {
+  const hex = createHash('sha256').update(input).digest('hex').slice(0, 32).split('');
+  hex[12] = '4';
+  hex[16] = ((Number.parseInt(hex[16], 16) & 0x3) | 0x8).toString(16);
+  const value = hex.join('');
+  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
+}
+
+function getValidatedSeedConfig(): { apiKey: string; baseUrl: string } {
+  const apiKey = ASAAS_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      'ASAAS_SANDBOX_API_KEY não definida. O seed foi interrompido antes de acessar ou alterar o banco.',
+    );
+  }
+
+  let parsedBase: URL;
+  try {
+    parsedBase = new URL(ASAAS_BASE);
+  } catch {
+    throw new Error('ASAAS_SANDBOX_BASE_URL inválida.');
+  }
+
+  const isOfficialSandbox =
+    parsedBase.protocol === 'https:' &&
+    parsedBase.hostname === 'api-sandbox.asaas.com' &&
+    (parsedBase.pathname === '/' || parsedBase.pathname === '');
+
+  if (!isOfficialSandbox) {
+    throw new Error(
+      'O seed aceita exclusivamente https://api-sandbox.asaas.com. URLs de produção, proxy ou ambiente desconhecido foram bloqueadas.',
+    );
+  }
+
+  return { apiKey, baseUrl: ASAAS_BASE };
+}
 
 // ── Asaas helper ────────────────────────────────────────────────────
 async function asaas(method: string, path: string, body?: Record<string, any>) {
-  if (!ASAAS_API_KEY) {
-    throw new Error(
-      'ASAAS_SANDBOX_API_KEY não definida. Configure uma chave exclusivamente do Sandbox antes de executar este seed.',
-    );
-  }
+  const { apiKey, baseUrl } = getValidatedSeedConfig();
 
-  if (ASAAS_BASE === 'https://api.asaas.com') {
-    throw new Error(
-      'O seed de Sandbox não pode usar a URL de produção do Asaas.',
-    );
-  }
-
-  const url = `${ASAAS_BASE}/v3${path}`;
+  const url = `${baseUrl}/v3${path}`;
   const res = await fetch(url, {
     method,
     headers: {
       'Content-Type': 'application/json',
       'User-Agent': process.env.ASAAS_USER_AGENT || 'DNACare-Seed/0.1.0',
-      access_token: ASAAS_API_KEY,
+      access_token: apiKey,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -45,9 +74,40 @@ async function asaas(method: string, path: string, body?: Record<string, any>) {
 
 // ── Main ────────────────────────────────────────────────────────────
 async function populate() {
+  getValidatedSeedConfig();
+
   const ds = await AppDataSource.initialize();
   const db = (sql: string, params?: any[]) => ds.query(sql, params);
   const hash = (pw: string) => bcrypt.hash(pw, 10);
+
+  try {
+    const [databaseState] = await db(
+      `
+        SELECT
+          EXISTS (
+            SELECT 1 FROM tenant_users WHERE tenant_id = $1
+          )
+          OR EXISTS (
+            SELECT 1 FROM opportunities WHERE tenant_id = $1
+          )
+          OR EXISTS (
+            SELECT 1 FROM sales WHERE tenant_id = $1
+          )
+          OR EXISTS (
+            SELECT 1 FROM clients WHERE tenant_id = $1
+          )
+          OR EXISTS (
+            SELECT 1 FROM subscriptions WHERE tenant_id = $1
+          ) AS populated
+      `,
+      [TENANT_ID],
+    );
+
+    if (databaseState?.populated && !ALLOW_POPULATED_SANDBOX_SEED) {
+      throw new Error(
+        'O banco Sandbox já possui dados para o tenant do seed. Faça backup e defina ALLOW_POPULATED_SANDBOX_SEED=true somente para uma reexecução deliberada.',
+      );
+    }
 
   console.log('╔══════════════════════════════════════════╗');
   console.log('║  POPULATE SANDBOX — Dados Completos     ║');
@@ -75,7 +135,18 @@ async function populate() {
     );
     await db(
       `INSERT INTO tenant_users (tenant_id, user_id, role, status)
-       VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING`,
+       SELECT $1, $2, $3, $4
+       WHERE NOT EXISTS (
+         SELECT 1
+         FROM tenant_users
+         WHERE tenant_id = $1 AND user_id = $2
+       )`,
+      [TENANT_ID, u.id, u.role, 'active'],
+    );
+    await db(
+      `UPDATE tenant_users
+       SET role = $3, status = $4
+       WHERE tenant_id = $1 AND user_id = $2`,
       [TENANT_ID, u.id, u.role, 'active'],
     );
     console.log(`  ✔ ${u.email} (${u.role})`);
@@ -153,14 +224,34 @@ async function populate() {
       [p.id, p.name, p.description, p.type, 'publicado', true],
     );
 
-    const pvId = randomUUID();
+    const existingPlanVersions = await db(
+      `SELECT id
+       FROM plan_versions
+       WHERE plan_id = $1 AND version = $2
+       ORDER BY created_at ASC, id ASC
+       LIMIT 1`,
+      [p.id, 1],
+    );
+    const pvId =
+      existingPlanVersions[0]?.id || stableUuid(`sandbox-plan-version:${p.id}:1`);
     planVersionIds.push(pvId);
 
     await db(
       `INSERT INTO plan_versions (id, plan_id, version, name, base_value, billing_cycle, dependent_rule,
          included_dependents, max_dependents, dependent_value, tiers_config, admission_fee, status, published_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-       ON CONFLICT (id) DO NOTHING`,
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         base_value = EXCLUDED.base_value,
+         billing_cycle = EXCLUDED.billing_cycle,
+         dependent_rule = EXCLUDED.dependent_rule,
+         included_dependents = EXCLUDED.included_dependents,
+         max_dependents = EXCLUDED.max_dependents,
+         dependent_value = EXCLUDED.dependent_value,
+         tiers_config = EXCLUDED.tiers_config,
+         admission_fee = EXCLUDED.admission_fee,
+         status = EXCLUDED.status,
+         published_at = EXCLUDED.published_at`,
       [
         pvId, p.id, 1, `${p.name} v1`, p.config.baseValue, 'MONTHLY',
         p.config.dependentRule, p.config.includedDependents,
@@ -302,10 +393,24 @@ async function populate() {
     // Create dependents
     for (let i = 1; i < o.cpfs.length; i++) {
       const depDoc = normalizeDocument(o.cpfs[i]);
-      const depId = randomUUID();
+      const existingDependents = await db(
+        `SELECT id
+         FROM opportunity_dependents
+         WHERE opportunity_id = $1 AND document_normalized = $2
+         ORDER BY created_at ASC, id ASC
+         LIMIT 1`,
+        [o.id, depDoc],
+      );
+      const depId =
+        existingDependents[0]?.id ||
+        stableUuid(`sandbox-opportunity-dependent:${o.id}:${depDoc}`);
       await db(
         `INSERT INTO opportunity_dependents (id, opportunity_id, name, document, document_normalized)
-         VALUES ($1,$2,$3,$4,$5) ON CONFLICT (id) DO NOTHING`,
+         VALUES ($1,$2,$3,$4,$5)
+         ON CONFLICT (id) DO UPDATE SET
+           name = EXCLUDED.name,
+           document = EXCLUDED.document,
+           document_normalized = EXCLUDED.document_normalized`,
         [depId, o.id, o.depNames[i - 1], o.cpfs[i], depDoc],
       );
     }
@@ -587,8 +692,11 @@ async function populate() {
   console.log('  👤 Login (vendedor2): vendedor2@dnacare.com.br / Vendedor@123');
   console.log(`  🏢 Tenant ID:         ${TENANT_ID}`);
   console.log('');
-
-  await ds.destroy();
+  } finally {
+    if (ds.isInitialized) {
+      await ds.destroy();
+    }
+  }
 }
 
 populate().catch((err) => {
